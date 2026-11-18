@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段 4 · Ceres 学习路线</title>
+<style>
+  :root{
+    --bg:#ffffff;--page:#f6f8fa;--surface:#ffffff;--text:#1f2328;--muted:#57606a;--hint:#8b949e;
+    --border:#d8dee4;--soft:#eaeef2;--blue:#185fa5;--deep:#0c447c;--bluebg:#e6f1fb;--blueln:#cfe3f7;
+    --teal:#0f6e56;--tealbg:#e1f5ee;--tealln:#bfe6d8;--amber:#854f0b;--amberbg:#faf0da;
+    --purple:#534ab7;--purplebg:#eeedfe;--coral:#993c1d;--coralbg:#faece7;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--page);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.75}
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .tbin{max-width:1080px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:600;color:var(--deep);font-size:14px;white-space:nowrap}
+  .logo .mark{width:26px;height:26px;border-radius:7px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px}
+  .progress{display:flex;align-items:center;gap:0;flex:1;justify-content:center;flex-wrap:wrap}
+  .pnode{display:flex;align-items:center;gap:0}
+  .pdot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-family:var(--mono);font-weight:600;background:var(--soft);color:var(--hint);border:1.5px solid transparent;flex:0 0 auto}
+  .pdot.done{background:var(--teal-bg);color:var(--teal)}
+  .pdot.cur{background:var(--blue);color:#fff;box-shadow:0 0 0 3px var(--blue-bg)}
+  .pbar{width:34px;height:2px;background:var(--border);margin:0 3px}
+  .pbar.done{background:var(--teal)}
+  .homebtn{font-size:13px;color:var(--muted);white-space:nowrap}
+  .stagehero{background:var(--surface);border-bottom:1px solid var(--border)}
+  .stagehero .hin{max-width:1080px;margin:0 auto;padding:40px 24px 34px}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.04em;padding:4px 12px;border-radius:99px;margin-bottom:14px}
+  .kicker .sn{font-family:var(--mono)}
+  .stagehero h1{font-size:34px;line-height:1.25;margin:0 0 10px;color:var(--deep);letter-spacing:-.02em}
+  .stagehero .lead{font-size:16.5px;color:var(--muted);margin:0;max-width:760px;line-height:1.7}
+  .goal{margin-top:22px;border-radius:12px;padding:16px 20px;border:1px solid var(--teal-line);background:var(--teal-bg)}
+  .goal b{display:block;color:#085041;font-size:13px;margin-bottom:6px}
+  .goal ul{margin:0;padding-left:20px;font-size:14px;color:#0b5846}
+  .goal li{margin:3px 0}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 0}
+  .grid{display:grid;grid-template-columns:210px 1fr;gap:36px}
+  aside{position:sticky;top:64px;align-self:start;height:calc(100vh - 80px);overflow:auto;padding:28px 0 40px}
+  aside .ttl{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--hint);padding:0 12px 8px}
+  aside a{display:block;font-size:13px;color:var(--muted);padding:7px 12px;border-left:2px solid transparent;border-radius:0 6px 6px 0}
+  aside a:hover{background:var(--blue-bg);color:var(--deep);text-decoration:none}
+  aside a.active{background:var(--blue-bg);color:var(--deep);border-left-color:var(--blue);font-weight:600}
+  article{min-width:0;padding:28px 0 40px}
+  section{scroll-margin-top:80px;margin-bottom:44px}
+  h2{font-size:23px;color:var(--deep);margin:0 0 14px;padding-bottom:9px;border-bottom:2px solid var(--blue-bg);letter-spacing:-.01em}
+  h2 .num{color:var(--blue);font-family:var(--mono);font-size:17px;margin-right:9px}
+  h3{font-size:17px;margin:24px 0 9px}
+  p{margin:10px 0}
+  ul,ol{margin:10px 0;padding-left:24px}
+  li{margin:5px 0}
+  strong{color:var(--deep)}
+  code.inline{font-family:var(--mono);font-size:.88em;background:var(--page);border:1px solid var(--soft);border-radius:5px;padding:1px 6px;color:var(--coral)}
+  .call{border-left:4px solid var(--blue);background:var(--blue-bg);border-radius:0 9px 9px 0;padding:13px 18px;margin:16px 0;font-size:14px}
+  .call b.lbl{display:block;margin-bottom:4px}
+  .call p{margin:4px 0}
+  .call.tip{border-color:var(--teal);background:var(--teal-bg)}
+  .call.warn{border-color:var(--amber);background:var(--amber-bg)}
+  .call.note{border-color:var(--purple);background:var(--purple-bg)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:13px;margin:16px 0}
+  .card{border:1px solid var(--border);border-radius:11px;padding:17px;background:var(--surface)}
+  .card h4{margin:0 0 7px;font-size:15px;color:var(--deep)}
+  .card p{margin:0;font-size:13.3px;color:var(--muted);line-height:1.6}
+  .card .tag{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--page);border:1px solid var(--soft);border-radius:4px;padding:1px 7px;margin-bottom:9px;color:var(--teal)}
+  .code{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:15px 0;background:var(--page)}
+  .code .h{background:#eef1f4;border-bottom:1px solid var(--border);padding:6px 14px;font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:space-between}
+  .code .copy{cursor:pointer;border:1px solid var(--border);background:var(--surface);border-radius:5px;padding:2px 10px;font-size:11.5px;color:var(--muted);font-family:var(--sans)}
+  .code .copy:hover{color:var(--blue);border-color:var(--blue)}
+  .code pre{margin:0;padding:15px 17px;overflow:auto;font-family:var(--mono);font-size:12.8px;line-height:1.65;color:var(--text)}
+  .kw{color:#a626a4}.fn{color:#075db0}.cm{color:#8b949e;font-style:italic}.st{color:#c9502b}.nm{color:#986801}
+  .out{background:#0d1117;color:#c9d1d9;border-radius:10px;padding:14px 17px;font-family:var(--mono);font-size:12.3px;line-height:1.6;overflow:auto;margin:14px 0}
+  .out .g{color:#7ee787}.out .d{color:#8b949e}
+  table{width:100%;border-collapse:collapse;margin:15px 0;font-size:13.8px}
+  th,td{border:1px solid var(--border);padding:8px 11px;text-align:left;vertical-align:top}
+  th{background:var(--page);color:var(--deep);font-weight:600}
+  td code{font-family:var(--mono);font-size:12.3px;color:var(--coral)}
+  .formula{background:var(--page);border:1px solid var(--soft);border-radius:10px;padding:14px 18px;margin:15px 0;font-family:var(--mono);font-size:13.8px;color:var(--deep);text-align:center;line-height:1.9;overflow:auto}
+  .steps{counter-reset:st;margin:16px 0}
+  .step{position:relative;padding-left:42px;margin:13px 0}
+  .step:before{counter-increment:st;content:counter(st);position:absolute;left:0;top:1px;width:28px;height:28px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;font-family:var(--mono)}
+  .step h4{margin:1px 0 4px;font-size:14.5px;color:var(--deep)}
+  .step p{margin:0;font-size:13.8px;color:var(--muted)}
+  details{border:1px solid var(--border);border-radius:9px;padding:11px 16px;margin:12px 0;background:var(--surface)}
+  summary{cursor:pointer;color:var(--deep);font-weight:600;font-size:14px}
+  .lsdemo{margin:16px 0;border:1px solid var(--border);border-radius:11px;padding:15px 17px;background:var(--surface)}
+  .lsdemo .legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:8px;font-size:12px;color:var(--muted)}
+  .lsdemo .legend span{display:flex;align-items:center;gap:5px}
+  .lsdemo svg{width:100%;height:auto;display:block}
+  .lsdemo .ctrl{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin:12px 0 6px}
+  .lsdemo .ctrl label{font-size:13px;display:flex;align-items:center;gap:8px}
+  .lsdemo .ctrl input[type=range]{width:150px}
+  .lsdemo .val{font-family:var(--mono);min-width:38px;color:var(--deep)}
+  .lsdemo .readout{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px}
+  .lsdemo .cost{background:var(--page);border-radius:8px;padding:8px 16px}
+  .lsdemo .cost .lab{font-size:12px;color:var(--muted)}
+  .lsdemo .cost .num{font-size:22px;font-weight:600;font-family:var(--mono);color:var(--deep)}
+  .lsdemo button{cursor:pointer;border:1px solid var(--border);background:var(--surface);border-radius:6px;padding:5px 12px;font-size:13px;color:var(--blue)}
+  .lsdemo button:hover{border-color:var(--blue)}
+  .lsdemo .hint{font-size:12px;color:var(--hint)}
+  .navbot{display:flex;gap:16px;justify-content:space-between;margin-top:46px;padding-top:22px;border-top:1px solid var(--border)}
+  .navbot a{flex:1;border:1px solid var(--border);border-radius:11px;padding:14px 18px;background:var(--surface)}
+  .navbot a:hover{border-color:var(--blue);text-decoration:none;transform:translateY(-1px)}
+  .navbot .lbl{font-size:12px;color:var(--hint)}
+  .navbot .ttl{font-size:15px;font-weight:600;color:var(--deep);display:block;margin-top:2px}
+  .navbot .r{text-align:right}
+  .navbot .sp{flex:0 0 120px}
+
+  /* ===== 原理深挖 ===== */
+  .deep-hd{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:#534ab7;background:#eeedfe;border:1px solid #cecbf6;border-radius:99px;padding:3px 11px;margin:0 0 8px}
+  .derive{border:1px solid var(--border);border-radius:11px;background:var(--surface);padding:15px 18px;margin:14px 0}
+  .derive h3{margin:0 0 9px;font-size:15.5px;color:var(--deep)}
+  .derive .eq{font-family:var(--mono);font-size:13.4px;line-height:2.05;color:var(--deep);background:var(--page);border:1px solid var(--soft);border-radius:8px;padding:10px 14px;margin:8px 0;overflow:auto;white-space:nowrap}
+  .derive .eq .em{color:var(--coral);font-weight:600}
+  .derive .eq .tl{color:var(--teal);font-weight:600}
+  .derive p{font-size:13.5px;color:var(--muted);margin:7px 0}
+  .derive p b{color:var(--deep)}
+  .animb{border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:15px 17px;margin:15px 0}
+  .animb .cap{font-size:12px;font-weight:600;color:var(--teal);letter-spacing:.03em;margin-bottom:9px}
+  .animb svg{width:100%;height:auto;display:block;background:var(--page);border:1px solid var(--soft);border-radius:9px}
+  .animb .ctl{display:flex;flex-wrap:wrap;gap:11px;align-items:center;margin-top:11px}
+  .animb button{cursor:pointer;border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:6px;padding:5px 13px;font-size:12.5px}
+  .animb button.gh{background:var(--surface);color:var(--blue)}
+  .animb button:hover{filter:brightness(.94)}
+  .animb label{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .animb input[type=range]{width:138px}
+  .animb .ro{font-family:var(--mono);font-size:12.4px;color:var(--deep);background:var(--page);border:1px solid var(--soft);border-radius:6px;padding:5px 10px;margin-top:10px;display:inline-block;line-height:1.8}
+  .animb .ro b{color:var(--coral)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:860px){.two{grid-template-columns:1fr}}
+
+  @media(max-width:860px){.grid{grid-template-columns:1fr}aside{display:none}.stagehero h1{font-size:27px}.progress{display:none}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="tbin">
+  <div class="logo"><span class="mark">C</span> Ceres 学习路线</div>
+  <div class="progress"><a class="pdot done" href="stage1.html" title="阶段1：打基础">1</a><div class="pbar done"></div><a class="pdot done" href="stage2.html" title="阶段2：跑通第一个例子">2</a><div class="pbar done"></div><a class="pdot done" href="stage3.html" title="阶段3：吃透核心骨架">3</a><div class="pbar"></div><a class="pdot cur" href="stage4.html" title="阶段4：动手练习">4</a><div class="pbar"></div><a class="pdot " href="stage5.html" title="阶段5：进阶实战">5</a></div>
+  <a class="homebtn" href="index.html">首页</a>
+</div></div>
+<div class="stagehero"><div class="hin">
+  <span class="kicker" style="color:#0f6e56;background:#e1f5ee;border:1px solid #bfe6d8"><span class="sn">阶段 4 / 5</span></span>
+  <h1>动手练习</h1>
+  <p class="lead">从“无数据的优化”升级到“用数据拟合”。做一遍曲线拟合，再亲手加离群点看鲁棒损失怎么救场。这一步做完，你已能解决大部分实际拟合问题。</p>
+  <div class="goal"><b>这一阶段结束后，你将能够</b><ul><li>把指数曲线拟合到带噪声的数据</li><li>理解每个观测点对应一个残差块</li><li>用 CauchyLoss 抵抗离群点</li><li>养成改参数观察结果的习惯</li></ul></div>
+</div></div>
+<div class="grid">
+  <aside><div class="ttl">本页目录</div><a href="#m1">问题 setup</a><a href="#m2">写代码</a><a href="#m3">结果分析</a><a href="#m4">鲁棒拟合</a><a href="#m5">练习任务</a><a href="#deep">原理深挖</a></aside>
+  <article>
+<section id="m1"><h2><span class="num">01</span>问题设定</h2>
+<p>数据由曲线 <code class="inline">y = e^(0.3x + 0.1)</code> 加上标准差 <code class="inline">σ = 0.2</code> 的高斯噪声生成。我们要拟合模型 <code class="inline">y = e^(mx + c)</code>，求 <code class="inline">m, c</code>。</p>
+<div class="formula">残差 r<sub>i</sub> = y<sub>i</sub> − exp(m·x<sub>i</sub> + c)</div>
+<p>和 Hello World 的唯一区别：现在有 N 个观测点，每个点贡献一个残差块，但<strong>所有残差块共享同一组参数</strong> <code class="inline">m, c</code>。</p></section>
+
+<section id="m2"><h2><span class="num">02</span>写代码</h2>
+<div class="code"><div class="h"><span>curve_fitting.cc · 核心片段</span><button class="copy">复制</button></div><pre><code>struct ExponentialResidual {
+  ExponentialResidual(double x, double y) : x_(x), y_(y) {}
+  template &lt;typename T&gt;
+  bool operator()(const T* const m, const T* const c, T* residual) const {
+    residual[0] = y_ - exp(m[0] * x_ + c[0]);
+    return true;
+  }
+ private:
+  const double x_, y_;             // 这个观测点的数据
+};
+
+double m = 0.0, c = 0.0;           // 待求参数，初值 0
+Problem problem;
+for (int i = 0; i &lt; kNumObservations; ++i) {
+  CostFunction* f =
+      new AutoDiffCostFunction&lt;ExponentialResidual, 1, 1, 1&gt;(
+          data[2*i], data[2*i+1]); // 把 x_i, y_i 存进仿函数
+  problem.AddResidualBlock(f, nullptr, &amp;m, &amp;c);
+}</code></pre></div>
+<div class="call tip"><b class="lbl">关键模式</b><p>循环里每造一个残差块，就把该点的 xᵢ,yᵢ 通过构造函数塞进去。这是 Ceres 处理批量数据的标准写法。</p></div></section>
+
+<section id="m3"><h2><span class="num">03</span>结果分析</h2>
+<div class="out">Initial m: 0        c: 0
+<span class="g">Final   m: 0.291861 c: 0.131439</span>   <span class="d">// 真值 m=0.3, c=0.1</span></div>
+<p>结果偏离真值是正常的——数据有噪声。有意思的是：在真值 (0.3, 0.1) 处评估目标函数得 1.082425，反而比拟合结果的 1.05675 更差。这正说明拟合找的是“最小二乘意义下最好”，不是“离真值最近”。</p></section>
+
+<section id="m4"><h2><span class="num">04</span>鲁棒拟合：抗离群点</h2>
+<p>如果数据里混入几个离谱的异常点，普通最小二乘会被严重拉偏。只需把 <code class="inline">nullptr</code> 换成鲁棒损失：</p>
+<div class="code"><div class="h"><span>一行之差</span><button class="copy">复制</button></div><pre><code>problem.AddResidualBlock(f, nullptr, &amp;m, &amp;c);            // 普通平方损失
+problem.AddResidualBlock(f, new CauchyLoss(0.5), &amp;m, &amp;c); // 鲁棒：0.5 是尺度</code></pre></div>
+<div class="call tip"><b class="lbl">直觉</b><p>平方损失 r² 随残差二次增长，离群点会产生巨大梯度把解拽跑；Cauchy 在大残差处增长变缓，等于告诉求解器“这点可能是噪声，别太当真”。</p></div></section>
+
+<section id="m5"><h2><span class="num">05</span>练习任务</h2>
+<div class="steps">
+  <div class="step"><h4>改初值</h4><p>把 m、c 的初值改成 (1.0, 1.0)，看迭代次数和最终结果有没有变化。</p></div>
+  <div class="step"><h4>加离群点</h4><p>往数据里塞 3 个 y 值放大 10 倍的点，对比有无 CauchyLoss 时曲线的差别。</p></div>
+  <div class="step"><h4>换模型</h4><p>把模型换成直线 <code class="inline">y = mx + c</code>，改动残差公式和模板参数，重新拟合。</p></div>
+</div>
+<div class="call"><b class="lbl">过关标准</b><p>能独立跑通曲线拟合，并说清“为什么每个点一个残差块、为什么共享参数”。做到就进入最后的进阶实战。</p></div></section>
+
+
+<section id="deep"><h2><span class="num">06</span>原理深挖：鲁棒损失凭什么抗离群点</h2>
+<span class="deep-hd">MATH + ANIMATION</span>
+<p>阶段 4 你给残差套了个 <code class="inline">CauchyLoss</code>，拟合就不怕离群点了。为什么？这章从"影响函数"的角度讲透原理。</p>
+<div class="derive">
+  <h3>① 问题出在平方：离群点被惩罚得太狠</h3>
+  <p>普通最小二乘的损失函数 <b>ρ(z) = ½z²</b>（z 是残差）。它对残差求导得到<b>影响函数 ψ(z) = ρ′(z) = z</b>——残差越大，这个点往回拉的力量<b>线性无限增长</b>。一个远离群体的离群点，会凭一己之力把整条拟合线拽歪。</p>
+  <h3>② 鲁棒损失：让影响"封顶"甚至回落</h3>
+  <p>鲁棒损失的核心是改造 ρ，使 ψ(z)=ρ′(z) 对大残差<b>有界</b>：</p>
+  <div class="eq">平方 &nbsp; ρ=½z² &nbsp;→&nbsp; ψ(z)=<span class="em">z</span> &nbsp;(直线，无界)
+Huber &nbsp; |z|≤δ: ρ=½z²; |z|>δ: ρ=δ(|z|−½δ) &nbsp;→&nbsp; ψ(z)=<span class="tl">clip(z, −δ, δ)</span> &nbsp;(封顶)
+Cauchy &nbsp; ρ=½δ²ln(1+(z/δ)²) &nbsp;→&nbsp; ψ(z)=<span class="tl">z / (1+(z/δ)²)</span> &nbsp;(先增后回落)</div>
+  <p><b>Cauchy 的 ψ 在大 z 时反而趋近 0</b>——等于告诉求解器："这个点差得太离谱了，别听它的"。这就是它抗离群点的本质。</p>
+  <h3>③ 在 Ceres 里怎么用</h3>
+  <p>把损失作为第三个参数传给 <code class="inline">AddResidualBlock</code> 即可，Ceres 内部会用 ψ 对残差加权：</p>
+  <div class="eq">problem.AddResidualBlock(cost_function, <span class="em">new ceres::CauchyLoss(1.0)</span>, &amp;m, &amp;c);</div>
+  <p>参数 δ（这里是 1.0）是"多算离群"的尺度，按你的残差量级设定。</p>
+</div>
+<div class="animb" id="lossBox">
+  <div class="cap">动画演示 · 三种损失的影响函数对比</div>
+  <p style="font-size:13px;color:var(--muted);margin:0 0 10px">横轴是残差 z，纵轴是影响 ψ(z)（这个点拉拽拟合线的力量）。拖动滑块选一个残差，看三种损失各自给多大的"拉力"：平方一路猛增，Huber 到 ±1 就封顶，Cauchy 越过峰值后反而回落。</p>
+  <svg id="lossSvg" viewBox="0 0 680 300" role="img" aria-label="影响函数对比动画">
+    <g id="lossGrid"></g>
+    <path id="curveSq" fill="none" stroke="#ba7517" stroke-width="2.5"/>
+    <path id="curveHub" fill="none" stroke="#185fa5" stroke-width="2.5"/>
+    <path id="cauCau" fill="none" stroke="#0f6e56" stroke-width="2.5"/>
+    <line id="lossMarker" y1="22" y2="260" stroke="#534ab7" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <g id="lossDots"></g>
+    <text x="360" y="292" text-anchor="middle" font-size="12" fill="#57606a">残差 z →</text>
+  </svg>
+  <div class="ctl">
+    <label>残差 z <input id="lossZ" type="range" min="-60" max="60" value="35"><span id="lossZv" class="ro" style="margin:0;padding:2px 7px">z=3.5</span></label>
+  </div>
+  <div class="ro" id="lossRo">平方 ψ=<b>—</b> &nbsp; Huber ψ=<b>—</b> &nbsp; Cauchy ψ=<b>—</b></div>
+</div>
+<div class="call warn"><b class="lbl">δ 的量级要对</b><p>CauchyLoss/HuberLoss 的参数 δ 要和你的残差量级匹配。δ 设得远大于残差，几乎等于没加鲁棒损失；设得太小，连正常点都被当成离群点丢掉。先用普通最小二乘跑一遍看看典型残差大小，再定 δ。</p></div>
+</section>
+  <div class="navbot"><a href="stage3.html"><span class="lbl">← 上一阶段</span><span class="ttl">3 · 吃透核心骨架</span></a><a class="r" href="stage5.html"><span class="lbl">下一阶段 →</span><span class="ttl">5 · 进阶实战</span></a></div>
+  </article>
+</div>
+
+<script>
+(function(){
+  var nav=[].slice.call(document.querySelectorAll('aside a'));
+  var secs=nav.map(function(a){return document.querySelector(a.getAttribute('href'))});
+  function onScroll(){var k=0;for(var i=0;i<secs.length;i++){if(secs[i]&&secs[i].getBoundingClientRect().top<=120)k=i}nav.forEach(function(a,i){a.classList.toggle('active',i===k)})}
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function hi(c){
+    var re=/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(struct|class|template|typename|const|constexpr|double|float|int|bool|void|return|true|false|virtual|public|private|protected|new|delete|nullptr|NULL|static|for|if|else|while|using|namespace|explicit|auto|operator|cmake_minimum_required|project|find_package|add_executable|target_include_directories|target_link_libraries|set|make|mkdir|cd|sudo|apt|pip|conda|vcpkg|required|PRIVATE)\b|\b(AutoDiffCostFunction|NumericDiffCostFunction|DynamicAutoDiffCostFunction|CostFunction|SizedCostFunction|Problem|Solver|Summary|Options|Solve|AddResidualBlock|AddParameterBlock|CauchyLoss|HuberLoss|EigenQuaternionManifold|AngleAxisRotatePoint|SnavelyReprojectionError|ExponentialResidual|CostFunctor|Evaluate|exp|sqrt|sin|cos|std|cout|endl|ceres|Eigen)\b|\b(\d+\.?\d*(?:e[+-]?\d+)?)\b/g;
+    var o='',l=0,m;
+    while((m=re.exec(c))!==null){o+=esc(c.slice(l,m.index));var cl=m[1]?'cm':m[2]?'st':m[3]?'kw':m[4]?'fn':'nm';o+='<span class="'+cl+'">'+esc(m[0])+'</span>';l=m.index+m[0].length}
+    o+=esc(c.slice(l));return o;
+  }
+  document.querySelectorAll('.code pre code').forEach(function(e){if(e.textContent.indexOf('<span')<0)e.innerHTML=hi(e.textContent)});
+  document.querySelectorAll('.code .copy').forEach(function(b){b.addEventListener('click',function(){var c=b.parentNode.parentNode.querySelector('pre code').textContent;navigator.clipboard.writeText(c).then(function(){var o=b.textContent;b.textContent='已复制';setTimeout(function(){b.textContent=o},1400)})})});
+})();
+</script>
+
+<script>
+
+(function(){
+  var svg=document.getElementById('lossSvg'); if(!svg) return;
+  var L=52,R=648,T=22,Bot=260,ZMAX=6,PMAX=6;
+  function px(z){return L+(z+ZMAX)/(2*ZMAX)*(R-L);}
+  function py(p){return Bot-(p+PMAX)/(2*PMAX)*(Bot-T);}
+  function sq(z){return z;}
+  function hub(z){return Math.max(-1,Math.min(1,z));}
+  function cau(z){return z/(1+z*z);}
+  var grid='',gx='',gy='',i;
+  for(i=-6;i<=6;i++) gx+='<line x1="'+px(i)+'" y1="'+T+'" x2="'+px(i)+'" y2="'+Bot+'" stroke="#eaeef2"/>';
+  for(i=-6;i<=6;i+=2){gy+='<line x1="'+L+'" y1="'+py(i)+'" x2="'+R+'" y2="'+py(i)+'" stroke="'+(i===0?'#c8d0d8':'#eaeef2')+'"/><text x="'+(L-7)+'" y="'+(py(i)+4)+'" text-anchor="end" font-size="10" fill="#8b949e">'+i+'</text>';}
+  document.getElementById('lossGrid').innerHTML=gx+gy;
+  function curve(fn){var p='';for(var z=-ZMAX;z<=ZMAX;z+=0.05){var v=fn(z);p+=(p?'L':'M')+px(z).toFixed(1)+' '+py(Math.max(-PMAX,Math.min(PMAX,v))).toFixed(1);}return p;}
+  document.getElementById('curveSq').setAttribute('d',curve(sq));
+  document.getElementById('curveHub').setAttribute('d',curve(hub));
+  document.getElementById('cauCau').setAttribute('d',curve(cau));
+  var zS=document.getElementById('lossZ');
+  function upd(){
+    var z=+zS.value/10, mk=document.getElementById('lossMarker');
+    mk.setAttribute('x1',px(z));mk.setAttribute('x2',px(z));
+    var dots='';
+    [['#ba7517',sq(z)],['#185fa5',hub(z)],['#0f6e56',cau(z)]].forEach(function(a){
+      dots+='<circle cx="'+px(z)+'" cy="'+py(a[1])+'" r="6" fill="'+a[0]+'" stroke="#fff" stroke-width="2"/>';
+    });
+    document.getElementById('lossDots').innerHTML=dots;
+    document.getElementById('lossZv').textContent='z='+z.toFixed(1);
+    document.getElementById('lossRo').innerHTML='平方 ψ=<b>'+sq(z).toFixed(2)+'</b> &nbsp; Huber ψ=<b>'+hub(z).toFixed(2)+'</b> &nbsp; Cauchy ψ=<b>'+cau(z).toFixed(2)+'</b>';
+  }
+  zS.addEventListener('input',upd);upd();
+})();
+
+</script>
+</body>
+</html>
