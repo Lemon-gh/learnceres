@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段 1 · Ceres 学习路线</title>
+<style>
+  :root{
+    --bg:#ffffff;--page:#f6f8fa;--surface:#ffffff;--text:#1f2328;--muted:#57606a;--hint:#8b949e;
+    --border:#d8dee4;--soft:#eaeef2;--blue:#185fa5;--deep:#0c447c;--bluebg:#e6f1fb;--blueln:#cfe3f7;
+    --teal:#0f6e56;--tealbg:#e1f5ee;--tealln:#bfe6d8;--amber:#854f0b;--amberbg:#faf0da;
+    --purple:#534ab7;--purplebg:#eeedfe;--coral:#993c1d;--coralbg:#faece7;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--page);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.75}
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .tbin{max-width:1080px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:600;color:var(--deep);font-size:14px;white-space:nowrap}
+  .logo .mark{width:26px;height:26px;border-radius:7px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px}
+  .progress{display:flex;align-items:center;gap:0;flex:1;justify-content:center;flex-wrap:wrap}
+  .pnode{display:flex;align-items:center;gap:0}
+  .pdot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-family:var(--mono);font-weight:600;background:var(--soft);color:var(--hint);border:1.5px solid transparent;flex:0 0 auto}
+  .pdot.done{background:var(--teal-bg);color:var(--teal)}
+  .pdot.cur{background:var(--blue);color:#fff;box-shadow:0 0 0 3px var(--blue-bg)}
+  .pbar{width:34px;height:2px;background:var(--border);margin:0 3px}
+  .pbar.done{background:var(--teal)}
+  .homebtn{font-size:13px;color:var(--muted);white-space:nowrap}
+  .stagehero{background:var(--surface);border-bottom:1px solid var(--border)}
+  .stagehero .hin{max-width:1080px;margin:0 auto;padding:40px 24px 34px}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.04em;padding:4px 12px;border-radius:99px;margin-bottom:14px}
+  .kicker .sn{font-family:var(--mono)}
+  .stagehero h1{font-size:34px;line-height:1.25;margin:0 0 10px;color:var(--deep);letter-spacing:-.02em}
+  .stagehero .lead{font-size:16.5px;color:var(--muted);margin:0;max-width:760px;line-height:1.7}
+  .goal{margin-top:22px;border-radius:12px;padding:16px 20px;border:1px solid var(--teal-line);background:var(--teal-bg)}
+  .goal b{display:block;color:#085041;font-size:13px;margin-bottom:6px}
+  .goal ul{margin:0;padding-left:20px;font-size:14px;color:#0b5846}
+  .goal li{margin:3px 0}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 0}
+  .grid{display:grid;grid-template-columns:210px 1fr;gap:36px}
+  aside{position:sticky;top:64px;align-self:start;height:calc(100vh - 80px);overflow:auto;padding:28px 0 40px}
+  aside .ttl{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--hint);padding:0 12px 8px}
+  aside a{display:block;font-size:13px;color:var(--muted);padding:7px 12px;border-left:2px solid transparent;border-radius:0 6px 6px 0}
+  aside a:hover{background:var(--blue-bg);color:var(--deep);text-decoration:none}
+  aside a.active{background:var(--blue-bg);color:var(--deep);border-left-color:var(--blue);font-weight:600}
+  article{min-width:0;padding:28px 0 40px}
+  section{scroll-margin-top:80px;margin-bottom:44px}
+  h2{font-size:23px;color:var(--deep);margin:0 0 14px;padding-bottom:9px;border-bottom:2px solid var(--blue-bg);letter-spacing:-.01em}
+  h2 .num{color:var(--blue);font-family:var(--mono);font-size:17px;margin-right:9px}
+  h3{font-size:17px;margin:24px 0 9px}
+  p{margin:10px 0}
+  ul,ol{margin:10px 0;padding-left:24px}
+  li{margin:5px 0}
+  strong{color:var(--deep)}
+  code.inline{font-family:var(--mono);font-size:.88em;background:var(--page);border:1px solid var(--soft);border-radius:5px;padding:1px 6px;color:var(--coral)}
+  .call{border-left:4px solid var(--blue);background:var(--blue-bg);border-radius:0 9px 9px 0;padding:13px 18px;margin:16px 0;font-size:14px}
+  .call b.lbl{display:block;margin-bottom:4px}
+  .call p{margin:4px 0}
+  .call.tip{border-color:var(--teal);background:var(--teal-bg)}
+  .call.warn{border-color:var(--amber);background:var(--amber-bg)}
+  .call.note{border-color:var(--purple);background:var(--purple-bg)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:13px;margin:16px 0}
+  .card{border:1px solid var(--border);border-radius:11px;padding:17px;background:var(--surface)}
+  .card h4{margin:0 0 7px;font-size:15px;color:var(--deep)}
+  .card p{margin:0;font-size:13.3px;color:var(--muted);line-height:1.6}
+  .card .tag{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--page);border:1px solid var(--soft);border-radius:4px;padding:1px 7px;margin-bottom:9px;color:var(--teal)}
+  .code{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:15px 0;background:var(--page)}
+  .code .h{background:#eef1f4;border-bottom:1px solid var(--border);padding:6px 14px;font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:space-between}
+  .code .copy{cursor:pointer;border:1px solid var(--border);background:var(--surface);border-radius:5px;padding:2px 10px;font-size:11.5px;color:var(--muted);font-family:var(--sans)}
+  .code .copy:hover{color:var(--blue);border-color:var(--blue)}
+  .code pre{margin:0;padding:15px 17px;overflow:auto;font-family:var(--mono);font-size:12.8px;line-height:1.65;color:var(--text)}
+  .kw{color:#a626a4}.fn{color:#075db0}.cm{color:#8b949e;font-style:italic}.st{color:#c9502b}.nm{color:#986801}
+  .out{background:#0d1117;color:#c9d1d9;border-radius:10px;padding:14px 17px;font-family:var(--mono);font-size:12.3px;line-height:1.6;overflow:auto;margin:14px 0}
+  .out .g{color:#7ee787}.out .d{color:#8b949e}
+  table{width:100%;border-collapse:collapse;margin:15px 0;font-size:13.8px}
+  th,td{border:1px solid var(--border);padding:8px 11px;text-align:left;vertical-align:top}
+  th{background:var(--page);color:var(--deep);font-weight:600}
+  td code{font-family:var(--mono);font-size:12.3px;color:var(--coral)}
+  .formula{background:var(--page);border:1px solid var(--soft);border-radius:10px;padding:14px 18px;margin:15px 0;font-family:var(--mono);font-size:13.8px;color:var(--deep);text-align:center;line-height:1.9;overflow:auto}
+  .steps{counter-reset:st;margin:16px 0}
+  .step{position:relative;padding-left:42px;margin:13px 0}
+  .step:before{counter-increment:st;content:counter(st);position:absolute;left:0;top:1px;width:28px;height:28px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;font-family:var(--mono)}
+  .step h4{margin:1px 0 4px;font-size:14.5px;color:var(--deep)}
+  .step p{margin:0;font-size:13.8px;color:var(--muted)}
+  details{border:1px solid var(--border);border-radius:9px;padding:11px 16px;margin:12px 0;background:var(--surface)}
+  summary{cursor:pointer;color:var(--deep);font-weight:600;font-size:14px}
+  .lsdemo{margin:16px 0;border:1px solid var(--border);border-radius:11px;padding:15px 17px;background:var(--surface)}
+  .lsdemo .legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:8px;font-size:12px;color:var(--muted)}
+  .lsdemo .legend span{display:flex;align-items:center;gap:5px}
+  .lsdemo svg{width:100%;height:auto;display:block}
+  .lsdemo .ctrl{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin:12px 0 6px}
+  .lsdemo .ctrl label{font-size:13px;display:flex;align-items:center;gap:8px}
+  .lsdemo .ctrl input[type=range]{width:150px}
+  .lsdemo .val{font-family:var(--mono);min-width:38px;color:var(--deep)}
+  .lsdemo .readout{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px}
+  .lsdemo .cost{background:var(--page);border-radius:8px;padding:8px 16px}
+  .lsdemo .cost .lab{font-size:12px;color:var(--muted)}
+  .lsdemo .cost .num{font-size:22px;font-weight:600;font-family:var(--mono);color:var(--deep)}
+  .lsdemo button{cursor:pointer;border:1px solid var(--border);background:var(--surface);border-radius:6px;padding:5px 12px;font-size:13px;color:var(--blue)}
+  .lsdemo button:hover{border-color:var(--blue)}
+  .lsdemo .hint{font-size:12px;color:var(--hint)}
+  .navbot{display:flex;gap:16px;justify-content:space-between;margin-top:46px;padding-top:22px;border-top:1px solid var(--border)}
+  .navbot a{flex:1;border:1px solid var(--border);border-radius:11px;padding:14px 18px;background:var(--surface)}
+  .navbot a:hover{border-color:var(--blue);text-decoration:none;transform:translateY(-1px)}
+  .navbot .lbl{font-size:12px;color:var(--hint)}
+  .navbot .ttl{font-size:15px;font-weight:600;color:var(--deep);display:block;margin-top:2px}
+  .navbot .r{text-align:right}
+  .navbot .sp{flex:0 0 120px}
+
+  /* ===== 原理深挖 ===== */
+  .deep-hd{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:#534ab7;background:#eeedfe;border:1px solid #cecbf6;border-radius:99px;padding:3px 11px;margin:0 0 8px}
+  .derive{border:1px solid var(--border);border-radius:11px;background:var(--surface);padding:15px 18px;margin:14px 0}
+  .derive h3{margin:0 0 9px;font-size:15.5px;color:var(--deep)}
+  .derive .eq{font-family:var(--mono);font-size:13.4px;line-height:2.05;color:var(--deep);background:var(--page);border:1px solid var(--soft);border-radius:8px;padding:10px 14px;margin:8px 0;overflow:auto;white-space:nowrap}
+  .derive .eq .em{color:var(--coral);font-weight:600}
+  .derive .eq .tl{color:var(--teal);font-weight:600}
+  .derive p{font-size:13.5px;color:var(--muted);margin:7px 0}
+  .derive p b{color:var(--deep)}
+  .animb{border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:15px 17px;margin:15px 0}
+  .animb .cap{font-size:12px;font-weight:600;color:var(--teal);letter-spacing:.03em;margin-bottom:9px}
+  .animb svg{width:100%;height:auto;display:block;background:var(--page);border:1px solid var(--soft);border-radius:9px}
+  .animb .ctl{display:flex;flex-wrap:wrap;gap:11px;align-items:center;margin-top:11px}
+  .animb button{cursor:pointer;border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:6px;padding:5px 13px;font-size:12.5px}
+  .animb button.gh{background:var(--surface);color:var(--blue)}
+  .animb button:hover{filter:brightness(.94)}
+  .animb label{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .animb input[type=range]{width:138px}
+  .animb .ro{font-family:var(--mono);font-size:12.4px;color:var(--deep);background:var(--page);border:1px solid var(--soft);border-radius:6px;padding:5px 10px;margin-top:10px;display:inline-block;line-height:1.8}
+  .animb .ro b{color:var(--coral)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:860px){.two{grid-template-columns:1fr}}
+
+  @media(max-width:860px){.grid{grid-template-columns:1fr}aside{display:none}.stagehero h1{font-size:27px}.progress{display:none}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="tbin">
+  <div class="logo"><span class="mark">C</span> Ceres 学习路线</div>
+  <div class="progress"><a class="pdot cur" href="stage1.html" title="阶段1：打基础">1</a><div class="pbar"></div><a class="pdot " href="stage2.html" title="阶段2：跑通第一个例子">2</a><div class="pbar"></div><a class="pdot " href="stage3.html" title="阶段3：吃透核心骨架">3</a><div class="pbar"></div><a class="pdot " href="stage4.html" title="阶段4：动手练习">4</a><div class="pbar"></div><a class="pdot " href="stage5.html" title="阶段5：进阶实战">5</a></div>
+  <a class="homebtn" href="index.html">首页</a>
+</div></div>
+<div class="stagehero"><div class="hin">
+  <span class="kicker" style="color:#0f6e56;background:#e1f5ee;border:1px solid #bfe6d8"><span class="sn">阶段 1 / 5</span></span>
+  <h1>打基础</h1>
+  <p class="lead">不泛泛教 C++，只补 Ceres 真正用得到的四块地基：最小二乘直觉、仿函数、模板、指针，外加能编译的 CMake 工程。</p>
+  <div class="goal"><b>这一阶段结束后，你将能够</b><ul><li>建立“调参数让误差最小”的直觉，能看懂 cost 公式</li><li>理解仿函数与模板，知道为什么代价函数那样写</li><li>理解 &x 传地址的意义</li><li>能照着模板写出最小 CMake 工程</li></ul></div>
+</div></div>
+<div class="grid">
+  <aside><div class="ttl">本页目录</div><a href="#m1">数学直觉</a><a href="#m2">仿函数</a><a href="#m3">模板</a><a href="#m4">指针</a><a href="#m5">CMake</a><a href="#m6">自检</a><a href="#deep">原理深挖</a></aside>
+  <article>
+<section id="m1"><h2><span class="num">01</span>最小二乘直觉</h2>
+<p>假设有一堆观测点，你想找一条直线 <code class="inline">y = mx + c</code> 穿过它们。怎么算“最好的”那条线？做法是：对每个点算出它到直线的<strong>残差</strong> r（竖直距离），把所有残差<strong>平方后求和</strong>，让这个总和最小。</p>
+<div class="formula">cost(m, c) = ½ &sum;<sub>i</sub> ( y<sub>i</sub> − (m·x<sub>i</sub> + c) )² &nbsp;→&nbsp; 求使其最小的 m, c</div>
+<p><strong>为什么平方？</strong> 残差有正有负，直接相加会抵消；平方后非负，且大误差惩罚更重。<strong>为什么乘 ½？</strong> 只为求导时和平方产生的 2 约掉，不影响最优解。</p>
+<div class="call note"><b class="lbl">动手感受</b><p>拖动下面的斜率 m 和截距 c，看残差虚线和 cost 怎么变。点“跳到最优解”会让 Ceres 的目标降到最小——这就是 Ceres 在做的事。</p></div>
+<div class="lsdemo" id="lsdemo">
+  <div class="legend">
+    <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#185fa5"></span>观测点（带噪声）</span>
+    <span><span style="display:inline-block;width:16px;height:2px;background:#0f6e56;vertical-align:middle"></span>拟合直线</span>
+    <span><span style="display:inline-block;width:16px;height:0;border-top:2px dashed #ba7517;vertical-align:middle"></span>残差</span>
+  </div>
+  <svg id="lsSvg" viewBox="0 0 680 340" role="img" aria-label="可拖动的最小二乘拟合演示">
+    <line x1="52" y1="300" x2="660" y2="300" stroke="#8b949e" stroke-width="1"/>
+    <line x1="52" y1="300" x2="52" y2="24" stroke="#8b949e" stroke-width="1"/>
+    <g id="lsGrid" font-size="11" fill="#8b949e"></g>
+    <g id="lsResid" stroke="#ba7517" stroke-width="1.5" stroke-dasharray="4 3"></g>
+    <line id="lsFit" x1="52" y1="290" x2="660" y2="290" stroke="#0f6e56" stroke-width="2.5"/>
+    <g id="lsPts" fill="#185fa5"></g>
+    <text x="356" y="336" text-anchor="middle" font-size="12" fill="#57606a">x</text>
+    <text x="16" y="160" text-anchor="middle" font-size="12" fill="#57606a" transform="rotate(-90 16 160)">y</text>
+  </svg>
+  <div class="ctrl">
+    <label>斜率 m <input id="lsM" type="range" min="-1" max="2" step="0.01" value="0"><span class="val" id="lsMv">0.00</span></label>
+    <label>截距 c <input id="lsC" type="range" min="-2" max="4" step="0.01" value="3"><span class="val" id="lsCv">3.00</span></label>
+  </div>
+  <div class="readout">
+    <div class="cost"><div class="lab">当前误差 cost = ½Σr²</div><div class="num" id="lsCost">0.00</div></div>
+    <button id="lsSolve">跳到最优解</button>
+    <span class="hint">目标：把 cost 降到最小</span>
+  </div>
+</div>
+<h3>映射到 Ceres 的术语</h3>
+<table>
+  <tr><th>你现在理解的</th><th>Ceres 里叫</th><th>代码里对应</th></tr>
+  <tr><td>要调的参数 m, c</td><td>ParameterBlock（参数块）</td><td><code>double m, c;</code></td></tr>
+  <tr><td>一个点的误差</td><td>Residual（残差）</td><td><code>residual[0] = ...</code></td></tr>
+  <tr><td>误差平方和</td><td>目标函数 / cost</td><td>求解器内部计算</td></tr>
+  <tr><td>算残差的那段逻辑</td><td>CostFunction</td><td><code>CostFunctor::operator()</code></td></tr>
+</table></section>
+
+<section id="m2"><h2><span class="num">02</span>仿函数：把结构体当函数用</h2>
+<p>普通函数写成 <code class="inline">double f(double x){ return 10-x; }</code>。而“仿函数”是一个定义了 <code class="inline">operator()</code> 的结构体，可以像函数一样调用：</p>
+<div class="code"><div class="h"><span>functor_basics.cc</span><button class="copy">复制</button></div><pre><code>struct Minus {
+  double operator()(double x) const { return 10.0 - x; }
+};
+int main() {
+  Minus minus;                  // 造一个对象
+  return minus(3.0) == 7.0;     // 像函数一样调用 → 7
+}</code></pre></div>
+<p>Ceres 偏爱仿函数，因为它是<strong>对象</strong>，能携带数据。拟合时每个观测点 xᵢ,yᵢ 不同，可以构造时存进对象：</p>
+<div class="code"><div class="h"><span>带状态的仿函数 · Ceres 代价函数的雏形</span><button class="copy">复制</button></div><pre><code>struct LineResidual {
+  LineResidual(double x, double y) : x_(x), y_(y) {}
+  double operator()(double m, double c) const {
+    return y_ - (m * x_ + c);       // 残差
+  }
+ private:
+  double x_, y_;
+};</code></pre></div>
+<div class="call tip"><b class="lbl">要点</b><p><code class="inline">operator()</code> 末尾的 <code class="inline">const</code> 表示不修改对象自身，Ceres 的代价函数都带它。</p></div></section>
+
+<section id="m3"><h2><span class="num">03</span>模板：一份代码，两种用途</h2>
+<p>把上面仿函数里的 <code class="inline">double</code> 换成类型参数 <code class="inline">T</code>，就得到模板：</p>
+<div class="code"><div class="h"><span>template_basics.cc</span><button class="copy">复制</button></div><pre><code>template &lt;typename T&gt;
+T minus(T x) { return T(10.0) - x; }
+
+// 编译器自动生成两个版本：
+// minus&lt;double&gt;(3.0) → 7.0    普通算术
+// minus&lt;Jet&gt;(...)         自动带出导数</code></pre></div>
+<p>关键在 <code class="inline">T(10.0)</code>：把常量也构造成类型 T，让<strong>整个表达式都在 T 下运算</strong>。这正是 Ceres 自动微分的原理：</p>
+<div class="cards">
+  <div class="card"><span class="tag">T = double</span><h4>算残差</h4><p>普通计算，得到残差数值，用来评估“当前误差多大”。</p></div>
+  <div class="card"><span class="tag">T = Jet</span><h4>算导数</h4><p>Ceres 的特殊类型，运算时顺带把导数算出，告诉求解器往哪调参数。</p></div>
+</div>
+<div class="code"><div class="h"><span>Ceres 标准代价函数写法</span><button class="copy">复制</button></div><pre><code>struct CostFunctor {
+  template &lt;typename T&gt;
+  bool operator()(const T* const x, T* residual) const {
+    residual[0] = T(10.0) - x[0];   // 注意 T(10.0)
+    return true;
+  }
+};</code></pre></div>
+<div class="call warn"><b class="lbl">新手常踩的坑</b><p>把 <code class="inline">T(10.0)</code> 写成裸 <code class="inline">10.0</code>，或对 Jet 用 <code class="inline">std::sin</code>（应改为 <code class="inline">ceres::sin</code>），会让自动微分失效或编译报错。</p></div></section>
+
+<section id="m4"><h2><span class="num">04</span>指针：让求解器改你的变量</h2>
+<p>Ceres 求解时会<strong>原地修改</strong>你传进去的参数，所以必须传<strong>地址</strong>：</p>
+<div class="code"><div class="h"><span>pointer_basics.cc</span><button class="copy">复制</button></div><pre><code>void setToTen(double* p) { *p = 10.0; }   // *p 是那个变量本身
+int main() {
+  double x = 5.0;
+  setToTen(&amp;x);                 // &amp;x 取地址
+  // 此时 x == 10
+}</code></pre></div>
+<p>若写成传值 <code class="inline">setToTen(double p)</code>，改的只是副本，外面的 x 不变。Ceres 内部同理：</p>
+<div class="code"><div class="h"><span>Ceres 中传局部变量的地址</span><button class="copy">复制</button></div><pre><code>double x = 0.5;
+problem.AddResidualBlock(cost_function, nullptr, &amp;x);
+Solve(options, &amp;problem, &amp;summary);
+// 求解后 x 已被就地改成 ≈10</code></pre></div>
+<div class="call tip"><b class="lbl">类比</b><p><code class="inline">&amp;x</code> 是把你家的<strong>地址</strong>给别人，他才能进屋改东西；传值只给了张<strong>照片</strong>，改照片不影响你家。</p></div></section>
+
+<section id="m5"><h2><span class="num">05</span>CMake 最小工程</h2>
+<div class="code"><div class="h"><span>项目结构</span><button class="copy">复制</button></div><pre><code>my_ceres/
+├── CMakeLists.txt
+└── main.cc</code></pre></div>
+<div class="code"><div class="h"><span>CMakeLists.txt</span><button class="copy">复制</button></div><pre><code>cmake_minimum_required(VERSION 3.10)
+project(my_ceres)
+set(CMAKE_CXX_STANDARD 14)
+find_package(Ceres REQUIRED)
+add_executable(main main.cc)
+target_include_directories(main PRIVATE ${CERES_INCLUDE_DIRS})
+target_link_libraries(main ${CERES_LIBRARIES})</code></pre></div>
+<div class="out">mkdir build &amp;&amp; cd build <span class="d"># 建构建目录</span>
+cmake ..                 <span class="d"># 生成构建文件</span>
+make                     <span class="d"># 编译</span>
+./main                   <span class="d"># 运行</span></div>
+<div class="call warn"><b class="lbl">报错先查这里</b><p><code class="inline">find_package(Ceres REQUIRED)</code> 找不到 Ceres，通常是没装好或 CMake 不知道位置——这是新手 90% 编译失败的根源，与算法无关。</p></div></section>
+
+<section id="m6"><h2><span class="num">06</span>自检：基础打好了吗</h2>
+<ol>
+  <li>最小二乘的“残差”是什么？为什么要平方？</li>
+  <li>仿函数比普通函数多了什么能力？</li>
+  <li>为什么代价函数要写成 <code class="inline">template&lt;typename T&gt;</code>？</li>
+  <li><code class="inline">AddResidualBlock(..., &amp;x)</code> 为什么传 <code class="inline">&amp;x</code>？</li>
+  <li><code class="inline">AutoDiffCostFunction&lt;F, 1, 1&gt;</code> 两个 1 分别是什么？</li>
+</ol>
+<details><summary>点开参考答案</summary>
+<ol>
+  <li>残差是预测值与观测值之差；平方消除正负抵消并加重大误差惩罚。</li>
+  <li>仿函数是对象，能用成员变量保存观测数据。</li>
+  <li>让 Ceres 用 double 算残差、用 Jet 算导数；写死 double 就得手推雅可比。</li>
+  <li>传地址才能让求解器原地修改 x，传值只改副本。</li>
+  <li>第一个是残差维度，第二个是参数块维度。</li>
+</ol></details>
+<div class="call tip"><b class="lbl">过关标准</b><p>能不看答案答出这 5 题，就进入下一阶段：亲手跑通 Hello World。</p></div></section>
+
+
+<section id="deep"><h2><span class="num">07</span>原理深挖：最小二乘怎么解出来的</h2>
+<span class="deep-hd">MATH + ANIMATION</span>
+<p>前面你用滑块"感受"了 cost。现在回答一个更本质的问题：最优的 <code class="inline">m, c</code> 到底怎么算？Ceres 内部又用什么办法找到它？</p>
+<div class="derive">
+  <h3>① 把问题写成数学</h3>
+  <p>要最小化 <b>cost(m,c) = ½ Σ (yᵢ − (m·xᵢ + c))²</b>。这是关于 m、c 的二次函数，图像是一个"碗"。碗底就是最优解。</p>
+  <h3>② 求偏导并令其为零</h3>
+  <div class="eq">∂cost/∂m = <span class="em">−Σ xᵢ (yᵢ − m·xᵢ − c)</span> = 0
+∂cost/∂c = <span class="em">−Σ (yᵢ − m·xᵢ − c)</span> = 0</div>
+  <p>令两个偏导为 0，整理后得到一个二元一次方程组，叫<b>正规方程（Normal Equations）</b>：</p>
+  <div class="eq">(<span class="tl">Σxᵢ²</span>)·m + (<span class="tl">Σxᵢ</span>)·c = <span class="em">Σxᵢyᵢ</span>
+(<span class="tl">Σxᵢ</span>)·m + (<span class="tl">n</span>)·c = <span class="em">Σyᵢ</span></div>
+  <p>解这个方程组就得到闭式解 m*、c*（也就是你点"跳到最优解"时发生的事）。<b>线性最小二乘能一步算出答案</b>，不需要迭代。</p>
+  <h3>③ 但 Ceres 面对的往往是非线性的</h3>
+  <p>当模型是 <code class="inline">y = e^(mx+c)</code> 这种，正规方程不再有闭式解。Ceres 改用<b>迭代下降</b>：从初值出发，沿 cost 的负梯度方向一小步一小步挪到碗底。梯度就是偏导组成的向量：</p>
+  <div class="eq">∇cost = <span class="em">[ ∂cost/∂m , ∂cost/∂c ]</span>ᵀ &nbsp;&nbsp;→&nbsp;&nbsp; 更新：<span class="tl">(m,c) ← (m,c) − α·∇cost</span></div>
+</div>
+<div class="animb" id="gdBox">
+  <div class="cap">动画演示 · 从初值沿梯度下降到碗底</div>
+  <p style="font-size:13px;color:var(--muted);margin:0 0 10px">灰色椭圆是 cost 的等高线（越靠内 cost 越低）。红点是当前参数，沿负梯度一步步走向中心的绿色最优点。调学习率 α 看收敛快慢——太大反而会在碗里来回震荡。</p>
+  <svg id="gdSvg" viewBox="0 0 680 330" role="img" aria-label="梯度下降动画">
+    <g id="gdContour"></g>
+    <polyline id="gdPath" fill="none" stroke="#534ab7" stroke-width="2" opacity="0.75"/>
+    <circle id="gdOpt" r="7" fill="#0f6e56" stroke="#fff" stroke-width="2"/>
+    <circle id="gdCur" r="7" fill="#ba7517" stroke="#fff" stroke-width="2"/>
+    <text x="360" y="322" text-anchor="middle" font-size="12" fill="#57606a">参数 m →</text>
+    <text x="14" y="165" text-anchor="middle" font-size="12" fill="#57606a" transform="rotate(-90 14 165)">参数 c →</text>
+  </svg>
+  <div class="ctl">
+    <button id="gdPlay">▶ 播放</button>
+    <button id="gdStep" class="gh">单步</button>
+    <button id="gdReset" class="gh">重置</button>
+    <label>学习率 α <input id="gdLr" type="range" min="5" max="48" value="30"><span id="gdLrv" class="ro" style="margin:0;padding:2px 7px">0.0030</span></label>
+  </div>
+  <div class="ro" id="gdRo">迭代 <b id="gdIter">0</b> 步 &nbsp;|&nbsp; m=<b id="gdM">-0.80</b> &nbsp; c=<b id="gdC">-1.50</b> &nbsp;|&nbsp; cost=<b id="gdCost">—</b></div>
+</div>
+<div class="call tip"><b class="lbl">关键认知</b><p>Ceres 的 <code class="inline">Solver::Solve()</code> 干的就是这件迭代下降的事，只是它用的是更聪明的高斯-牛顿 / LM 算法（下一阶段详述），比纯梯度下降快得多。而每一步的方向（梯度 / 雅可比），正是靠自动微分算出来的（阶段 3 详述）。</p></div>
+</section>
+  <div class="navbot"><div class="sp"></div><a class="r" href="stage2.html"><span class="lbl">下一阶段 →</span><span class="ttl">2 · 跑通第一个例子</span></a></div>
+  </article>
+</div>
+
+<script>
+(function(){
+  var nav=[].slice.call(document.querySelectorAll('aside a'));
+  var secs=nav.map(function(a){return document.querySelector(a.getAttribute('href'))});
+  function onScroll(){var k=0;for(var i=0;i<secs.length;i++){if(secs[i]&&secs[i].getBoundingClientRect().top<=120)k=i}nav.forEach(function(a,i){a.classList.toggle('active',i===k)})}
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function hi(c){
+    var re=/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(struct|class|template|typename|const|constexpr|double|float|int|bool|void|return|true|false|virtual|public|private|protected|new|delete|nullptr|NULL|static|for|if|else|while|using|namespace|explicit|auto|operator|cmake_minimum_required|project|find_package|add_executable|target_include_directories|target_link_libraries|set|make|mkdir|cd|sudo|apt|pip|conda|vcpkg|required|PRIVATE)\b|\b(AutoDiffCostFunction|NumericDiffCostFunction|DynamicAutoDiffCostFunction|CostFunction|SizedCostFunction|Problem|Solver|Summary|Options|Solve|AddResidualBlock|AddParameterBlock|CauchyLoss|HuberLoss|EigenQuaternionManifold|AngleAxisRotatePoint|SnavelyReprojectionError|ExponentialResidual|CostFunctor|Evaluate|exp|sqrt|sin|cos|std|cout|endl|ceres|Eigen)\b|\b(\d+\.?\d*(?:e[+-]?\d+)?)\b/g;
+    var o='',l=0,m;
+    while((m=re.exec(c))!==null){o+=esc(c.slice(l,m.index));var cl=m[1]?'cm':m[2]?'st':m[3]?'kw':m[4]?'fn':'nm';o+='<span class="'+cl+'">'+esc(m[0])+'</span>';l=m.index+m[0].length}
+    o+=esc(c.slice(l));return o;
+  }
+  document.querySelectorAll('.code pre code').forEach(function(e){if(e.textContent.indexOf('<span')<0)e.innerHTML=hi(e.textContent)});
+  document.querySelectorAll('.code .copy').forEach(function(b){b.addEventListener('click',function(){var c=b.parentNode.parentNode.querySelector('pre code').textContent;navigator.clipboard.writeText(c).then(function(){var o=b.textContent;b.textContent='已复制';setTimeout(function(){b.textContent=o},1400)})})});
+})();
+</script>
+
+<script>
+(function(){
+  var svg=document.getElementById('lsSvg');if(!svg)return;
+  var xs=[0,1,2,3,4,5,6,7,8,9,10];
+  var ys=[1.1,1.7,2.0,2.6,3.2,3.5,4.1,4.6,5.0,5.9,6.1];
+  var L=52,R=660,T=24,B=300,XMAX=10,YMAX=7;
+  function px(x){return L+x/XMAX*(R-L)}
+  function py(y){return B-y/YMAX*(B-T)}
+  var grid=document.getElementById('lsGrid'),gx='',gy='';
+  for(var i=0;i<=XMAX;i++){var X=px(i);gx+='<line x1="'+X+'" y1="'+T+'" x2="'+X+'" y2="'+B+'" stroke="#eaeef2" stroke-width="1"/>';gx+='<text x="'+X+'" y="'+(B+16)+'" text-anchor="middle">'+i+'</text>'}
+  for(var j=0;j<=YMAX;j++){var Y=py(j);gy+='<line x1="'+L+'" y1="'+Y+'" x2="'+R+'" y2="'+Y+'" stroke="#eaeef2" stroke-width="1"/>';gy+='<text x="'+(L-8)+'" y="'+(Y+4)+'" text-anchor="end">'+j+'</text>'}
+  grid.innerHTML=gx+gy;
+  var pts='';xs.forEach(function(x,i){pts+='<circle cx="'+px(x)+'" cy="'+py(ys[i])+'" r="4.5"/>'});
+  document.getElementById('lsPts').innerHTML=pts;
+  var mS=document.getElementById('lsM'),cS=document.getElementById('lsC');
+  var mL=document.getElementById('lsMv'),cL=document.getElementById('lsCv'),costEl=document.getElementById('lsCost');
+  var fit=document.getElementById('lsFit'),resid=document.getElementById('lsResid');
+  function update(){
+    var m=parseFloat(mS.value),c=parseFloat(cS.value);
+    mL.textContent=m.toFixed(2);cL.textContent=c.toFixed(2);
+    fit.setAttribute('y1',py(c));fit.setAttribute('y2',py(m*XMAX+c));
+    var r='',cost=0;
+    for(var i=0;i<xs.length;i++){var pred=m*xs[i]+c;r+='<line x1="'+px(xs[i])+'" y1="'+py(ys[i])+'" x2="'+px(xs[i])+'" y2="'+py(pred)+'"/>';cost+=0.5*Math.pow(pred-ys[i],2)}
+    resid.innerHTML=r;costEl.textContent=cost.toFixed(2);
+  }
+  mS.addEventListener('input',update);cS.addEventListener('input',update);
+  document.getElementById('lsSolve').addEventListener('click',function(){
+    var n=xs.length,xb=0,yb=0,i;for(i=0;i<n;i++){xb+=xs[i];yb+=ys[i]}xb/=n;yb/=n;
+    var num=0,den=0;for(i=0;i<n;i++){num+=(xs[i]-xb)*(ys[i]-yb);den+=(xs[i]-xb)*(xs[i]-xb)}
+    var bm=num/den,bc=yb-bm*xb;
+    mS.value=Math.max(-1,Math.min(2,bm)).toFixed(2);cS.value=Math.max(-2,Math.min(4,bc)).toFixed(2);update();
+  });
+  update();
+})();
+</script>
+
+<script>
+
+(function(){
+  var svg=document.getElementById('gdSvg'); if(!svg) return;
+  var xs=[0,1,2,3,4,5,6,7,8,9,10];
+  var ys=[1.1,1.7,2.0,2.6,3.2,3.5,4.1,4.6,5.0,5.9,6.1];
+  var n=xs.length,Sx=0,Sy=0,Sxx=0,Sxy=0,Syy=0,i;
+  for(i=0;i<n;i++){Sx+=xs[i];Sy+=ys[i];Sxx+=xs[i]*xs[i];Sxy+=xs[i]*ys[i];Syy+=ys[i]*ys[i];}
+  var A=Sxx,B=Sx,C=n,D=Sxy,E=Sy,F=Syy;
+  // 正规方程解最优值
+  var det=A*C-B*B, bm=(D*C-B*E)/det, bc=(A*E-B*D)/det;
+  var cmin=0.5*(F-2*bm*D-2*bc*E+bm*bm*A+2*bm*bc*B+bc*bc*C);
+  // Hessian 特征分解（画椭圆等高线）
+  var tr=A+C, dlt=Math.sqrt((A-C)*(A-C)+4*B*B), l1=(tr+dlt)/2, l2=(tr-dlt)/2;
+  var th=0.5*Math.atan2(2*B,A-C), v1x=Math.cos(th),v1y=Math.sin(th),v2x=-v1y,v2y=v1x;
+  var L=56,R=648,T=22,Bot=300,MINM=-1,MAXM=1.6,MINC=-1,MAXC=3.2;
+  function px(m){return L+(m-MINM)/(MAXM-MINM)*(R-L);}
+  function py(c){return Bot-(c-MINC)/(MAXC-MINC)*(Bot-T);}
+  // 采样画多条等高线
+  var cg='', levels=[0.4,1.2,2.6,4.6,7.5,11], li;
+  for(li=0;li<levels.length;li++){
+    var rad2=2*levels[li]; if(rad2<=0) continue;
+    var a=Math.sqrt(rad2/l1), b=Math.sqrt(rad2/l2), pts='', k;
+    for(k=0;k<=64;k++){
+      var t=k/64*2*Math.PI, dm=a*Math.cos(t)*v1x+b*Math.sin(t)*v2x, dc=a*Math.cos(t)*v1y+b*Math.sin(t)*v2y;
+      pts+=(k?'L':'M')+px(bm+dm).toFixed(1)+' '+py(bc+dc).toFixed(1);
+    }
+    cg+='<path d="'+pts+'Z" fill="none" stroke="#d0d7de" stroke-width="1"/>';
+  }
+  document.getElementById('gdContour').innerHTML=cg;
+  document.getElementById('gdOpt').setAttribute('cx',px(bm));document.getElementById('gdOpt').setAttribute('cy',py(bc));
+  function cost(m,c){var s=0;for(var i=0;i<n;i++){var r=ys[i]-(m*xs[i]+c);s+=0.5*r*r;}return s;}
+  var m=-0.8,c=-1.5,pts=[[m,c]],lr=30,timer=null;
+  function draw(){
+    var p='';for(var i=0;i<pts.length;i++)p+=(i?'L':'M')+px(pts[i][0]).toFixed(1)+' '+py(pts[i][1]).toFixed(1);
+    document.getElementById('gdPath').setAttribute('points',p);
+    document.getElementById('gdCur').setAttribute('cx',px(m));document.getElementById('gdCur').setAttribute('cy',py(c));
+    document.getElementById('gdIter').textContent=pts.length-1;
+    document.getElementById('gdM').textContent=m.toFixed(3);document.getElementById('gdC').textContent=c.toFixed(3);
+    document.getElementById('gdCost').textContent=cost(m,c).toFixed(3);
+  }
+  function grad(){var gm=0,gc=0;for(var i=0;i<n;i++){var r=ys[i]-(m*xs[i]+c);gm+=-xs[i]*r;gc+=-r;}return[gm,gc];}
+  function step(){var g=grad();m-=lr/10000*g[0];c-=lr/10000*g[1];pts.push([m,c]);draw();if(Math.abs(g[0])+Math.abs(g[1])<0.02)pause();}
+  function pause(){if(timer){clearInterval(timer);timer=null;document.getElementById('gdPlay').textContent='▶ 播放';}}
+  document.getElementById('gdPlay').addEventListener('click',function(){
+    if(timer){pause();return;}document.getElementById('gdPlay').textContent='❚❚ 暂停';timer=setInterval(step,90);
+  });
+  document.getElementById('gdStep').addEventListener('click',function(){pause();step();});
+  document.getElementById('gdReset').addEventListener('click',function(){pause();m=-0.8;c=-1.5;pts=[[m,c]];draw();});
+  document.getElementById('gdLr').addEventListener('input',function(){lr=+this.value;document.getElementById('gdLrv').textContent=(lr/10000).toFixed(4);});
+  draw();
+})();
+
+</script>
+</body>
+</html>
