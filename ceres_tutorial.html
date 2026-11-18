@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ceres Solver 非线性最小二乘教程</title>
+<style>
+  :root{
+    --bg:#ffffff; --page:#f6f8fa; --surface:#ffffff;
+    --text:#1f2328; --muted:#57606a; --hint:#8b949e;
+    --border:#d8dee4; --border-soft:#eaeef2;
+    --blue:#185fa5; --blue-deep:#0c447c; --blue-bg:#e6f1fb;
+    --teal:#0f6e56; --teal-bg:#e1f5ee;
+    --amber:#854f0b; --amber-bg:#faf0da;
+    --red:#a32d2d; --red-bg:#fcebeb;
+    --code-bg:#f6f8fa;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--page);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.75}
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  .layout{display:flex;max-width:1280px;margin:0 auto;gap:32px;padding:0 24px}
+  aside{width:250px;flex:0 0 250px;position:sticky;top:0;align-self:flex-start;height:100vh;overflow:auto;padding:28px 0}
+  aside .brand{font-size:15px;font-weight:600;color:var(--blue-deep);padding:0 12px 12px;border-bottom:1px solid var(--border-soft);margin-bottom:12px}
+  aside .brand small{display:block;font-size:12px;color:var(--hint);font-weight:400;margin-top:2px}
+  nav a{display:block;padding:6px 12px;color:var(--muted);border-left:2px solid transparent;font-size:13.5px;border-radius:0 6px 6px 0}
+  nav a:hover{background:var(--blue-bg);color:var(--blue-deep);text-decoration:none}
+  nav a.active{background:var(--blue-bg);color:var(--blue-deep);border-left-color:var(--blue);font-weight:600}
+  nav .navtitle{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--hint);padding:14px 12px 4px}
+
+  main{flex:1;min-width:0;background:var(--surface);border-left:1px solid var(--border-soft);border-right:1px solid var(--border-soft);padding:40px 52px 100px}
+  header.hero{padding-bottom:26px;border-bottom:1px solid var(--border);margin-bottom:36px}
+  header.hero h1{font-size:32px;line-height:1.3;margin:0 0 10px;color:var(--blue-deep);letter-spacing:-.02em}
+  header.hero .sub{font-size:16px;color:var(--muted);margin:0 0 16px}
+  .badges{display:flex;flex-wrap:wrap;gap:8px}
+  .badge{font-size:12px;padding:3px 10px;border-radius:99px;background:var(--blue-bg);color:var(--blue-deep);border:1px solid #cfe3f7}
+  .badge.teal{background:var(--teal-bg);color:var(--teal);border-color:#bfe6d8}
+
+  section{scroll-margin-top:20px;margin-bottom:52px}
+  h2{font-size:24px;color:var(--blue-deep);margin:0 0 16px;padding-bottom:10px;border-bottom:2px solid var(--blue-bg);letter-spacing:-.01em}
+  h2 .num{color:var(--blue);font-variant-numeric:tabular-nums;margin-right:10px}
+  h3{font-size:18px;color:var(--text);margin:28px 0 10px}
+  p{margin:10px 0}
+  ul,ol{margin:10px 0;padding-left:24px}
+  li{margin:5px 0}
+  code.inline{font-family:var(--mono);font-size:.9em;background:var(--code-bg);border:1px solid var(--border-soft);border-radius:5px;padding:1px 6px;color:var(--red)}
+
+  .callout{border-left:4px solid var(--blue);background:var(--blue-bg);border-radius:0 8px 8px 0;padding:12px 18px;margin:18px 0;font-size:14px}
+  .callout.tip{border-color:var(--teal);background:var(--teal-bg)}
+  .callout.warn{border-color:var(--amber);background:var(--amber-bg)}
+  .callout .lbl{font-weight:600;display:block;margin-bottom:3px}
+  .callout p{margin:4px 0}
+
+  .formula{background:var(--page);border:1px solid var(--border-soft);border-radius:10px;padding:16px 20px;margin:16px 0;font-family:var(--mono);font-size:14px;color:var(--blue-deep);text-align:center;line-height:1.9;overflow-x:auto}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:18px 0}
+  .card{border:1px solid var(--border);border-radius:10px;padding:16px;background:var(--surface)}
+  .card h4{margin:0 0 6px;font-size:15px;color:var(--blue-deep)}
+  .card p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.6}
+  .card .tag{display:inline-block;font-size:11px;font-family:var(--mono);background:var(--code-bg);border:1px solid var(--border-soft);border-radius:4px;padding:1px 6px;margin-bottom:8px;color:var(--teal)}
+
+  .code{position:relative;margin:16px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--code-bg)}
+  .code .head{display:flex;align-items:center;justify-content:space-between;background:#eef1f4;border-bottom:1px solid var(--border);padding:7px 14px;font-size:12px;color:var(--muted);font-family:var(--mono)}
+  .code .copy{cursor:pointer;border:1px solid var(--border);background:var(--surface);border-radius:5px;padding:2px 10px;font-size:11.5px;color:var(--muted);font-family:var(--sans)}
+  .code .copy:hover{color:var(--blue);border-color:var(--blue)}
+  .code pre{margin:0;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;color:var(--text)}
+  .kw{color:#a626a4}.ty{color:#21845a}.fn{color:#075db0}.cm{color:#8b949e;font-style:italic}.st{color:#c9502b}.nm{color:#986801}.tp{color:#0f6e56}
+
+  .out{background:#0d1117;color:#c9d1d9;border-radius:10px;padding:14px 18px;font-family:var(--mono);font-size:12.5px;line-height:1.6;overflow-x:auto;margin:14px 0}
+  .out .hi{color:#7ee787}.out .dim{color:#8b949e}
+
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+  th,td{border:1px solid var(--border);padding:9px 12px;text-align:left;vertical-align:top}
+  th{background:var(--code-bg);color:var(--blue-deep);font-weight:600}
+  td code{font-family:var(--mono);font-size:12.5px;color:var(--red)}
+
+  .steps{counter-reset:step;margin:18px 0}
+  .step{position:relative;padding-left:44px;margin:14px 0}
+  .step:before{counter-increment:step;content:counter(step);position:absolute;left:0;top:0;width:28px;height:28px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600}
+  .step h4{margin:2px 0 4px;font-size:15px;color:var(--blue-deep)}
+  .step p{margin:0;font-size:14px;color:var(--muted)}
+
+  footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);font-size:13px;color:var(--hint)}
+  @media(max-width:900px){
+    aside{display:none}
+    main{padding:28px 20px 60px;border:none}
+    header.hero h1{font-size:26px}
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">Ceres Solver 教程<small>非线性最小二乘 · 中文精讲</small></div>
+    <nav id="nav">
+      <div class="navtitle">入门</div>
+      <a href="#intro">1. 简介与核心概念</a>
+      <a href="#hello">2. Hello World</a>
+      <a href="#derivatives">3. 导数计算方式</a>
+      <div class="navtitle">进阶示例</div>
+      <a href="#powell">4. Powell 函数</a>
+      <a href="#curve">5. 曲线拟合</a>
+      <a href="#robust">6. 鲁棒曲线拟合</a>
+      <a href="#ba">7. Bundle Adjustment</a>
+      <div class="navtitle">实战与总结</div>
+      <a href="#slam">8. Pose Graph SLAM</a>
+      <a href="#build">9. 编译与运行</a>
+      <a href="#best">10. 最佳实践与资源</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <h1>Ceres Solver 非线性最小二乘教程</h1>
+      <p class="sub">基于 Ceres Solver 官方文档 <em>Non-linear Least Squares Tutorial</em> 整理，从最小示例到视觉 SLAM 实战，系统掌握 Ceres 的建模与求解。</p>
+      <div class="badges">
+        <span class="badge">C++</span>
+        <span class="badge teal">自动微分</span>
+        <span class="badge teal">鲁棒损失</span>
+        <span class="badge teal">稀疏求解</span>
+        <span class="badge">Bundle Adjustment</span>
+        <span class="badge">SLAM</span>
+      </div>
+    </header>
+
+    <!-- 1 简介 -->
+    <section id="intro">
+      <h2><span class="num">01</span>简介与核心概念</h2>
+      <p>Ceres 用于求解带边界约束、经鲁棒化处理（robustified）的非线性最小二乘问题：</p>
+      <div class="formula">
+        min<sub>x</sub> &nbsp; ½ &sum;<sub>i</sub> &rho;<sub>i</sub>( | f<sub>i</sub>(x<sub>i₁</sub>, …, x<sub>ik</sub>) |² )<br>
+        s.t. &nbsp; l<sub>j</sub> &le; x<sub>j</sub> &le; u<sub>j</sub>
+      </div>
+      <p>这类问题广泛出现在科学与工程领域：从统计学中的曲线拟合，到计算机视觉中从照片重建三维模型（Bundle Adjustment）。当 <code class="inline">&rho;<sub>i</sub>(x)=x</code>（恒等函数）且边界为无穷时，就退化为最常见的标准非线性最小二乘：<code class="inline">½ &sum; |f<sub>i</sub>|²</code>。</p>
+
+      <h3>三个核心术语</h3>
+      <div class="cards">
+        <div class="card"><span class="tag">ResidualBlock</span><h4>残差块</h4><p>由一个代价函数 <code class="inline">f<sub>i</sub></code> 和它依赖的若干参数块构成，是问题的基本组成单元。</p></div>
+        <div class="card"><span class="tag">ParameterBlock</span><h4>参数块</h4><p>一组一起出现的小标量，如相机的 3 维平移向量、四元数的 4 个分量；单个标量也可以是一个参数块。</p></div>
+        <div class="card"><span class="tag">LossFunction</span><h4>损失函数</h4><p>标量函数 <code class="inline">&rho;<sub>i</sub></code>，用于降低离群点（outlier）对解的影响，实现鲁棒拟合。</p></div>
+      </div>
+      <div class="callout">
+        <span class="lbl">学习主线</span>
+        <p>无论示例多复杂，用 Ceres 解题永远是四步：<strong>① 定义代价函数（残差）→ ② 构建 Problem 并添加残差块 → ③ 配置 Solver::Options → ④ 调用 Solve()</strong>。后面的每个示例都是这条主线的具体化。</p>
+      </div>
+    </section>
+
+    <!-- 2 Hello World -->
+    <section id="hello">
+      <h2><span class="num">02</span>Hello World：最简单的问题</h2>
+      <p>先求函数 <code class="inline">½(10 − x)²</code> 的最小值，最优解显然是 <code class="inline">x = 10</code>。这是展示 Ceres 基本流程的最佳起点。</p>
+
+      <h3>第一步：写残差仿函数（functor）</h3>
+      <div class="code"><div class="head"><span>cost_functor.h · 自动微分版</span><button class="copy">复制</button></div><pre><code>struct CostFunctor {
+  template &lt;typename T&gt;
+  bool operator()(const T* const x, T* residual) const {
+    residual[0] = T(10.0) - x[0];
+    return true;
+  }
+};</code></pre></div>
+      <div class="callout tip">
+        <span class="lbl">关键点：为什么用模板？</span>
+        <p><code class="inline">operator()</code> 是模板方法，所有输入输出都是类型 <code class="inline">T</code>。Ceres 在只需残差值时用 <code class="inline">T = double</code> 调用它；在需要雅可比矩阵时用特殊类型 <code class="inline">T = Jet</code> 调用——这就是<strong>自动微分</strong>的魔法所在。</p>
+      </div>
+
+      <h3>第二步：构建问题并求解</h3>
+      <div class="code"><div class="head"><span>helloworld.cc</span><button class="copy">复制</button></div><pre><code>#include "ceres/ceres.h"
+#include "glog/logging.h"
+using ceres::AutoDiffCostFunction;
+using ceres::CostFunction;
+using ceres::Problem;
+using ceres::Solver;
+using ceres::Solve;
+
+int main(int argc, char** argv) {
+  google::InitGoogleLogging(argv[0]);
+
+  double x = 0.5;                 // 待求变量及其初值，求解器会原地修改它
+  const double initial_x = x;
+
+  Problem problem;                // 构建问题
+  CostFunction* cost_function =
+      new AutoDiffCostFunction&lt;CostFunctor, 1, 1&gt;(); // 1 残差, 1 参数
+  problem.AddResidualBlock(cost_function, nullptr, &amp;x);
+
+  Solver::Options options;        // 配置并运行求解器
+  options.minimizer_progress_to_stdout = true;
+  Solver::Summary summary;
+  Solve(options, &amp;problem, &amp;summary);
+
+  std::cout &lt;&lt; summary.BriefReport() &lt;&lt; "\n";
+  std::cout &lt;&lt; "x : " &lt;&lt; initial_x &lt;&lt; " -&gt; " &lt;&lt; x &lt;&lt; "\n";
+  return 0;
+}</code></pre></div>
+      <p>模板参数 <code class="inline">AutoDiffCostFunction&lt;CostFunctor, 1, 1&gt;</code> 依次表示：残差块类型、残差维度（1）、每个参数块的维度（1）。</p>
+      <div class="out"><span class="dim">iter      cost      cost_change  |gradient|   |step|    tr_ratio  tr_radius</span>
+   0  4.512500e+01    0.00e+00    9.50e+00   0.00e+00   0.00e+00  1.00e+04
+   1  4.511598e-07    4.51e+01    9.50e-04   9.50e+00   1.00e+00  3.00e+04
+   2  5.012552e-16    4.51e-07    3.17e-08   9.50e-04   1.00e+00  9.00e+04
+<span class="hi">Ceres Solver Report: Iterations: 2, Initial cost: 4.512500e+01,
+Final cost: 5.012552e-16, Termination: CONVERGENCE
+x : 0.5 -&gt; 10</span></div>
+      <p>从 <code class="inline">x=0.5</code> 出发，两次迭代即收敛到 <code class="inline">x=10</code>。这是线性问题，理论上一次线性求解即可；示例未改默认配置，因为默认参数是为更难的非线性问题设计的。</p>
+    </section>
+
+    <!-- 3 导数 -->
+    <section id="derivatives">
+      <h2><span class="num">03</span>导数计算：三种方式怎么选？</h2>
+      <p>Ceres 需要在任意参数值处计算目标函数每一项的值和导数。它提供三种求导方式：</p>
+      <table>
+        <tr><th>方式</th><th>适用场景</th><th>推荐度</th></tr>
+        <tr><td><code>AutoDiffCostFunction</code><br>自动微分</td><td>残差能写成模板仿函数（绝大多数情况）。利用 C++ 模板与 Jet 类型，链式法则精确求导，效率与精度俱佳。</td><td>★★★★★ 首选</td></tr>
+        <tr><td><code>NumericDiffCostFunction</code><br>数值微分</td><td>残差计算依赖无法修改的库函数，无法写成模板时使用（有限差分近似）。</td><td>★★ 谨慎</td></tr>
+        <tr><td><code>CostFunction</code> 子类<br>解析导数</td><td>需要手工推导雅可比，且闭式解比自动微分更高效，或使用近似导数时。</td><td>★★★ 特殊场景</td></tr>
+      </table>
+
+      <h3>数值微分示例</h3>
+      <div class="code"><div class="head"><span>numeric_diff.cc</span><button class="copy">复制</button></div><pre><code>struct NumericDiffCostFunctor {
+  bool operator()(const double* const x, double* residual) const {
+    residual[0] = 10.0 - x[0];
+    return true;
+  }
+};
+CostFunction* cost_function =
+    new NumericDiffCostFunction&lt;NumericDiffCostFunctor,
+                               ceres::CENTRAL, 1, 1&gt;();
+problem.AddResidualBlock(cost_function, nullptr, &amp;x);</code></pre></div>
+      <div class="callout warn">
+        <span class="lbl">官方建议</span>
+        <p>优先使用自动微分。数值微分计算昂贵、易受数值误差影响，还会导致收敛变慢；只有在确实无法使用模板时才退而求其次。</p>
+      </div>
+
+      <h3>解析微分示例</h3>
+      <div class="code"><div class="head"><span>analytic_diff.cc</span><button class="copy">复制</button></div><pre><code>class QuadraticCostFunction : public ceres::SizedCostFunction&lt;1, 1&gt; {
+ public:
+  virtual ~QuadraticCostFunction() {}
+  virtual bool Evaluate(double const* const* parameters,
+                        double* residuals,
+                        double** jacobians) const {
+    const double x = parameters[0][0];
+    residuals[0] = 10 - x;
+    if (jacobians != nullptr &amp;&amp; jacobians[0] != nullptr) {
+      jacobians[0][0] = -1;   // 残差是线性的，雅可比为常数 -1
+    }
+    return true;
+  }
+};</code></pre></div>
+      <p><code class="inline">Evaluate()</code> 中 <code class="inline">jacobians</code> 是可选输出：仅在非空时才需要计算对应雅可比（参数块被设为常量时会跳过）。尺寸在编译期已知时继承 <code class="inline">SizedCostFunction</code>，否则继承 <code class="inline">CostFunction</code>。</p>
+      <div class="callout">
+        <span class="lbl">更多高级方式</span>
+        <p>当参数块数量或尺寸在编译期未知时，可用 <code class="inline">DynamicAutoDiffCostFunction</code>；此外还有 <code class="inline">CostFunctionToFunctor</code>、<code class="inline">ConditionedCostFunction</code> 等。</p>
+      </div>
+    </section>
+
+    <!-- 4 Powell -->
+    <section id="powell">
+      <h2><span class="num">04</span>Powell 函数：多参数与稀疏依赖</h2>
+      <p>Powell 函数有 4 个变量和 4 个残差，目标是最小化 <code class="inline">½‖F(x)‖²</code>。它的价值在于展示：<strong>每个残差块只声明它真正依赖的参数</strong>，而不是把所有参数一股脑塞进去——这让 Ceres 能利用问题的稀疏结构。</p>
+      <div class="code"><div class="head"><span>F4 残差 · powell.cc</span><button class="copy">复制</button></div><pre><code>struct F4 {
+  template &lt;typename T&gt;
+  bool operator()(const T* const x1, const T* const x4,
+                  T* residual) const {
+    residual[0] = sqrt(10.0) * (x1[0] - x4[0]) * (x1[0] - x4[0]);
+    return true;
+  }
+};</code></pre></div>
+      <div class="code"><div class="head"><span>构建问题</span><button class="copy">复制</button></div><pre><code>double x1 = 3.0, x2 = -1.0, x3 = 0.0, x4 = 1.0;
+Problem problem;
+problem.AddResidualBlock(
+    new AutoDiffCostFunction&lt;F1, 1, 1, 1&gt;(), nullptr, &amp;x1, &amp;x2);
+problem.AddResidualBlock(
+    new AutoDiffCostFunction&lt;F2, 1, 1, 1&gt;(), nullptr, &amp;x3, &amp;x4);
+problem.AddResidualBlock(
+    new AutoDiffCostFunction&lt;F3, 1, 1, 1&gt;(), nullptr, &amp;x2, &amp;x3);
+problem.AddResidualBlock(
+    new AutoDiffCostFunction&lt;F4, 1, 1, 1&gt;(), nullptr, &amp;x1, &amp;x4);</code></pre></div>
+      <p>注意 <code class="inline">F1</code> 只依赖 <code class="inline">x1,x2</code>，<code class="inline">F4</code> 只依赖 <code class="inline">x1,x4</code>。求解结果 <code class="inline">x ≈ (0, 0, 0, 0)</code>，目标函数值降到约 <code class="inline">1.12×10⁻¹⁵</code>。</p>
+    </section>
+
+    <!-- 5 曲线拟合 -->
+    <section id="curve">
+      <h2><span class="num">05</span>曲线拟合：从无约束优化到数据拟合</h2>
+      <p>现在做一个真正的数据拟合问题。数据由曲线 <code class="inline">y = e^(0.3x + 0.1)</code> 加上标准差 <code class="inline">σ = 0.2</code> 的高斯噪声生成，我们要拟合模型 <code class="inline">y = e^(mx + c)</code> 中的 <code class="inline">m, c</code>。</p>
+      <div class="code"><div class="head"><span>curve_fitting.cc</span><button class="copy">复制</button></div><pre><code>struct ExponentialResidual {
+  ExponentialResidual(double x, double y) : x_(x), y_(y) {}
+
+  template &lt;typename T&gt;
+  bool operator()(const T* const m, const T* const c,
+                  T* residual) const {
+    residual[0] = y_ - exp(m[0] * x_ + c[0]);
+    return true;
+  }
+ private:
+  const double x_, y_;   // 一组观测样本
+};
+
+double m = 0.0, c = 0.0;
+Problem problem;
+for (int i = 0; i &lt; kNumObservations; ++i) {
+  CostFunction* cost_function =
+      new AutoDiffCostFunction&lt;ExponentialResidual, 1, 1, 1&gt;(
+          data[2*i], data[2*i + 1]);
+  problem.AddResidualBlock(cost_function, nullptr, &amp;m, &amp;c);
+}</code></pre></div>
+      <p>每个观测点对应一个残差块，所有残差块共享同一组参数 <code class="inline">m, c</code>。拟合结果：</p>
+      <div class="out">Initial m: 0        c: 0
+<span class="hi">Final   m: 0.291861 c: 0.131439</span>   <span class="dim">// 真值 m=0.3, c=0.1</span></div>
+      <p>由于数据含噪声，结果偏离真值是正常的。有意思的是：在真值 <code class="inline">(0.3, 0.1)</code> 处评估目标函数得到 1.082425，反而比拟合结果的 1.05675 更差——这正是噪声数据在最小二乘意义下的体现。</p>
+    </section>
+
+    <!-- 6 鲁棒 -->
+    <section id="robust">
+      <h2><span class="num">06</span>鲁棒曲线拟合：用损失函数抑制离群点</h2>
+      <p>当数据中混入离群点时，普通最小二乘会被少数异常值严重拉偏。解决方法是给残差块挂一个 <code class="inline">LossFunction</code>：它对高残差（通常是离群点）降权，从而减弱其对解的影响。</p>
+      <div class="code"><div class="head"><span>普通 vs 鲁棒 · robust_curve_fitting.cc</span><button class="copy">复制</button></div><pre><code>// 普通最小二乘：nullptr 表示平方损失
+problem.AddResidualBlock(cost_function, nullptr, &amp;m, &amp;c);
+
+// 鲁棒拟合：Cauchy 损失，0.5 为尺度参数
+problem.AddResidualBlock(cost_function, new CauchyLoss(0.5), &amp;m, &amp;c);</code></pre></div>
+      <p>只改一个参数，拟合曲线就明显更接近真实的 ground-truth 曲线。Ceres 还内置 <code class="inline">HuberLoss</code>、<code class="inline">SoftLOneLoss</code>、<code class="inline">ArctanLoss</code> 等，可根据离群程度选择。</p>
+      <div class="callout tip">
+        <span class="lbl">直觉理解</span>
+        <p>平方损失 <code class="inline">r²</code> 随残差二次增长，一个远离的点会产生巨大梯度把解拽过去；Cauchy 等鲁棒损失在残差大时增长趋于平缓，相当于告诉求解器“这个点可能是噪声，别太当真”。</p>
+      </div>
+    </section>
+
+    <!-- 7 BA -->
+    <section id="ba">
+      <h2><span class="num">07</span>Bundle Adjustment：Ceres 的杀手级应用</h2>
+      <p>Bundle Adjustment（光束法平差）是三维重建与视觉 SLAM 的核心：给定特征点观测与对应关系，同时优化<strong>三维点坐标</strong>和<strong>相机参数</strong>，最小化重投影误差。Ceres 的设计初衷之一就是高效求解这类大规模稀疏问题。</p>
+      <p>BAL 数据中每个残差依赖一个三维点和一个 9 参数相机：3 个旋转（轴角）、3 个平移、1 个焦距、2 个径向畸变。</p>
+      <div class="code"><div class="head"><span>重投影误差 · simple_bundle_adjuster.cc</span><button class="copy">复制</button></div><pre><code>struct SnavelyReprojectionError {
+  SnavelyReprojectionError(double observed_x, double observed_y)
+      : observed_x(observed_x), observed_y(observed_y) {}
+
+  template &lt;typename T&gt;
+  bool operator()(const T* const camera, const T* const point,
+                  T* residuals) const {
+    // camera[0,1,2] 为轴角旋转
+    T p[3];
+    ceres::AngleAxisRotatePoint(camera, point, p);
+    // camera[3,4,5] 为平移
+    p[0] += camera[3]; p[1] += camera[4]; p[2] += camera[5];
+
+    // 畸变中心（Bundler 相机坐标系 z 轴为负，故取反号）
+    T xp = -p[0] / p[2];
+    T yp = -p[1] / p[2];
+    const T&amp; l1 = camera[7], &amp;l2 = camera[8];
+    T r2 = xp*xp + yp*yp;
+    T distortion = 1.0 + r2 * (l1 + l2 * r2);
+
+    const T&amp; focal = camera[6];
+    T predicted_x = focal * distortion * xp;
+    T predicted_y = focal * distortion * yp;
+    residuals[0] = predicted_x - T(observed_x);
+    residuals[1] = predicted_y - T(observed_y);
+    return true;
+  }
+
+  static ceres::CostFunction* Create(double x, double y) {
+    return new ceres::AutoDiffCostFunction&lt;SnavelyReprojectionError,
+                                          2, 9, 3&gt;(x, y);
+  }
+  double observed_x, observed_y;
+};</code></pre></div>
+      <p>这个残差手推雅可比相当繁琐，而自动微分让实现变得简洁——这正是 AutoDiff 在复杂模型中的价值。<code class="inline">AngleAxisRotatePoint()</code> 等函数来自 <code class="inline">ceres/rotation.h</code>。</p>
+      <div class="code"><div class="head"><span>组装与求解</span><button class="copy">复制</button></div><pre><code>ceres::Problem problem;
+for (int i = 0; i &lt; bal_problem.num_observations(); ++i) {
+  ceres::CostFunction* cost_function =
+      SnavelyReprojectionError::Create(
+          bal_problem.observations()[2*i], bal_problem.observations()[2*i+1]);
+  problem.AddResidualBlock(cost_function, nullptr /* squared loss */,
+      bal_problem.mutable_camera_for_observation(i),
+      bal_problem.mutable_point_for_observation(i));
+}
+
+ceres::Solver::Options options;
+options.linear_solver_type = ceres::DENSE_SCHUR;  // BA 专用 Schur 求解器
+options.minimizer_progress_to_stdout = true;
+ceres::Solver::Summary summary;
+ceres::Solve(options, &amp;problem, &amp;summary);</code></pre></div>
+      <p>对于大规模稀疏问题可先尝试 <code class="inline">SPARSE_NORMAL_CHOLESKY</code>；而 BA 具有特殊的稀疏结构，Ceres 提供专门的 Schur 互补求解器（如 <code class="inline">DENSE_SCHUR</code>、<code class="inline">SPARSE_SCHUR</code>），通常快得多。</p>
+    </section>
+
+    <!-- 8 SLAM -->
+    <section id="slam">
+      <h2><span class="num">08</span>进阶：Pose Graph SLAM</h2>
+      <p>SLAM 即在未知环境中建图并同时定位。位姿图（pose graph）把问题抽象成：节点表示机器人位姿，边表示两节点间的相对变换（由里程计、激光扫描匹配等测得）。官方示例覆盖 2D 与 3D 两种。</p>
+      <div class="cards">
+        <div class="card"><span class="tag">2D Pose Graph</span><h4>位置 + 朝向角</h4><p>状态 <code class="inline">x=[pᵀ, ψ]ᵀ</code>，残差含平移差与归一化角度差；用 <code class="inline">AngleManifold</code> 处理角度的周期性，并对残差乘测量协方差逆平方根 <code class="inline">Σ^(-1/2)</code>。</p></div>
+        <div class="card"><span class="tag">3D Pose Graph</span><h4>位置 + 四元数</h4><p>状态 <code class="inline">x=[pᵀ, qᵀ]ᵀ</code>，用 Eigen 的 <code class="inline">QuaternionManifold</code> 保证更新只作用在流形切空间；注意 Eigen 四元数内存布局是 <code class="inline">[x,y,z,w]</code>，实部在最后。</p></div>
+      </div>
+      <div class="code"><div class="head"><span>流形（Manifold）的引入</span><button class="copy">复制</button></div><pre><code>problem.AddParameterBlock(parameters[i], 4,
+                          new ceres::EigenQuaternionManifold());
+// 角度、四元数等具有周期性/单位约束的量，必须声明流形，
+// 否则更新会破坏其数学约束（如四元数不再是单位长度）。</code></pre></div>
+      <p>示例程序读取 g2o 格式数据集，输出 <code class="inline">poses_original.txt</code> 与 <code class="inline">poses_optimized.txt</code>，并附带 <code class="inline">plot_results.py</code> 可视化优化前后的轨迹差异。</p>
+      <div class="callout">
+        <span class="lbl">何时必须用 Manifold？</span>
+        <p>只要参数本身带有约束（角度 modulo 2π、四元数单位长度、旋转矩阵正交性），就应通过 <code class="inline">AddParameterBlock</code> 指定对应的 Manifold，让求解器在切空间内更新。</p>
+      </div>
+    </section>
+
+    <!-- 9 编译 -->
+    <section id="build">
+      <h2><span class="num">09</span>编译与运行</h2>
+      <p>官方所有示例都在源码的 <code class="inline">examples/</code> 目录，用 CMake 构建。一个最小工程的 <code class="inline">CMakeLists.txt</code> 如下：</p>
+      <div class="code"><div class="head"><span>CMakeLists.txt</span><button class="copy">复制</button></div><pre><code>cmake_minimum_required(VERSION 3.10)
+project(hello_ceres)
+
+find_package(Ceres REQUIRED)
+include_directories(${CERES_INCLUDE_DIRS})
+
+add_executable(hello helloworld.cc)
+target_link_libraries(hello ${CERES_LIBRARIES})</code></pre></div>
+      <div class="out">mkdir build &amp;&amp; cd build
+cmake .. &amp;&amp; make -j
+./hello</div>
+      <p>依赖：Ceres Solver（内部依赖 Eigen、glog；新版本使用 Abseil）。Ubuntu 下可用 <code class="inline">apt install libceres-dev</code> 快速安装。</p>
+    </section>
+
+    <!-- 10 总结 -->
+    <section id="best">
+      <h2><span class="num">10</span>最佳实践与资源</h2>
+      <div class="steps">
+        <div class="step"><h4>优先使用自动微分</h4><p>把残差写成模板仿函数，让 Ceres 用 Jet 自动求导；仅在必要时才用数值或解析导数。</p></div>
+        <div class="step"><h4>正确声明参数依赖</h4><p>每个残差块只传入它真正依赖的参数块，充分利用稀疏性，大幅提高大规模问题的求解速度。</p></div>
+        <div class="step"><h4>有离群点就上鲁棒损失</h4><p>数据不干净时，给 <code class="inline">AddResidualBlock</code> 挂 <code class="inline">CauchyLoss</code> / <code class="inline">HuberLoss</code>，避免被异常值带偏。</p></div>
+        <div class="step"><h4>带约束的参数用 Manifold</h4><p>角度、四元数等必须通过 Manifold 更新，保证参数始终满足其数学约束。</p></div>
+        <div class="step"><h4>按问题规模选线性求解器</h4><p>小规模用 <code class="inline">DENSE_QR</code>；大规模稀疏用 <code class="inline">SPARSE_NORMAL_CHOLESKY</code>；BA 类问题用 Schur 系列。</p></div>
+      </div>
+      <h3>更多官方示例</h3>
+      <ul>
+        <li><code class="inline">bundle_adjuster.cc</code> — 完整 BA，含多种线性求解器与鲁棒损失</li>
+        <li><code class="inline">circle_fit.cc</code> / <code class="inline">ellipse_approximation.cc</code> — 几何拟合</li>
+        <li><code class="inline">denoising.cc</code> — Fields of Experts 图像去噪</li>
+        <li><code class="inline">nist.cc</code> — NIST 非线性回归标准测试集</li>
+        <li><code class="inline">robot_pose_mle.cc</code> — <code class="inline">DynamicAutoDiffCostFunction</code> 用法</li>
+        <li><code class="inline">slam/pose_graph_2d</code> / <code class="inline">pose_graph_3d</code> — 位姿图优化</li>
+      </ul>
+      <div class="callout tip">
+        <span class="lbl">原始出处</span>
+        <p>本教程内容整理自 Ceres Solver 官方文档：<a href="https://ceres-solver.org/nnls_tutorial.html" target="_blank">ceres-solver.org/nnls_tutorial.html</a>。更完整的 API 说明参见 <a href="https://ceres-solver.readthedocs.io/" target="_blank">readthedocs</a>。</p>
+      </div>
+    </section>
+
+    <footer>
+      本教程由官方 NNLS Tutorial 整理翻译而成，代码示例保留原始结构，注释与讲解做了本地化说明。适合作为 Ceres Solver 的系统入门与速查资料。
+    </footer>
+  </main>
+</div>
+
+<script>
+(function(){
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll('#nav a'));
+  var sections = navLinks.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+  function onScroll(){
+    var idx = 0;
+    for (var i=0;i<sections.length;i++){
+      if (sections[i] && sections[i].getBoundingClientRect().top <= 140) idx = i;
+    }
+    navLinks.forEach(function(a,i){ a.classList.toggle('active', i===idx); });
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function highlight(code){
+    var re = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(struct|class|template|typename|const|constexpr|double|float|int|bool|void|return|true|false|virtual|public|private|protected|new|delete|nullptr|NULL|static|for|if|else|while|using|namespace|explicit|auto|extern|this|sizeof|operator)\b|\b(AutoDiffCostFunction|NumericDiffCostFunction|DynamicAutoDiffCostFunction|CostFunction|SizedCostFunction|Problem|Solver|Summary|Options|Solve|AddResidualBlock|CauchyLoss|HuberLoss|EigenQuaternionManifold|AngleAxisRotatePoint|SnavelyReprojectionError|ExponentialResidual|CostFunctor|Evaluate|AddParameterBlock|exp|sqrt)\b|\b(\d+\.?\d*(?:e[+-]?\d+)?)\b/g;
+    var out = '', last = 0, m;
+    while ((m = re.exec(code)) !== null) {
+      out += esc(code.slice(last, m.index));
+      var cls = m[1] ? 'cm' : m[2] ? 'st' : m[3] ? 'kw' : m[4] ? 'fn' : 'nm';
+      out += '<span class="' + cls + '">' + esc(m[0]) + '</span>';
+      last = m.index + m[0].length;
+    }
+    out += esc(code.slice(last));
+    return out;
+  }
+  document.querySelectorAll('.code pre code').forEach(function(el){
+    var raw = el.textContent;
+    el.innerHTML = highlight(raw);
+  });
+  document.querySelectorAll('.code .copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var code = btn.closest('.code').querySelector('pre code').textContent;
+      navigator.clipboard.writeText(code).then(function(){
+        var old = btn.textContent; btn.textContent='已复制';
+        setTimeout(function(){btn.textContent=old;},1500);
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
