@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ceres 打基础：最小二乘 · 模板 · 指针 · CMake</title>
+<style>
+  :root{
+    --bg:#ffffff; --page:#f6f8fa; --surface:#ffffff;
+    --text:#1f2328; --muted:#57606a; --hint:#8b949e;
+    --border:#d8dee4; --border-soft:#eaeef2;
+    --blue:#185fa5; --blue-deep:#0c447c; --blue-bg:#e6f1fb;
+    --teal:#0f6e56; --teal-bg:#e1f5ee;
+    --amber:#854f0b; --amber-bg:#faf0da;
+    --purple:#534ab7; --purple-bg:#eeedfe;
+    --code-bg:#f6f8fa;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--page);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.75}
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .layout{display:flex;max-width:1280px;margin:0 auto;gap:32px;padding:0 24px}
+  aside{width:250px;flex:0 0 250px;position:sticky;top:0;align-self:flex-start;height:100vh;overflow:auto;padding:28px 0}
+  aside .brand{font-size:15px;font-weight:600;color:var(--blue-deep);padding:0 12px 12px;border-bottom:1px solid var(--border-soft);margin-bottom:12px}
+  aside .brand small{display:block;font-size:12px;color:var(--hint);font-weight:400;margin-top:2px}
+  nav a{display:block;padding:6px 12px;color:var(--muted);border-left:2px solid transparent;font-size:13.5px;border-radius:0 6px 6px 0}
+  nav a:hover{background:var(--blue-bg);color:var(--blue-deep);text-decoration:none}
+  nav a.active{background:var(--blue-bg);color:var(--blue-deep);border-left-color:var(--blue);font-weight:600}
+  nav .navtitle{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--hint);padding:14px 12px 4px}
+  main{flex:1;min-width:0;background:var(--surface);border-left:1px solid var(--border-soft);border-right:1px solid var(--border-soft);padding:40px 52px 100px}
+  header.hero{padding-bottom:26px;border-bottom:1px solid var(--border);margin-bottom:36px}
+  header.hero h1{font-size:30px;line-height:1.3;margin:0 0 10px;color:var(--blue-deep);letter-spacing:-.02em}
+  header.hero .sub{font-size:16px;color:var(--muted);margin:0 0 16px}
+  .badges{display:flex;flex-wrap:wrap;gap:8px}
+  .badge{font-size:12px;padding:3px 10px;border-radius:99px;background:var(--blue-bg);color:var(--blue-deep);border:1px solid #cfe3f7}
+  .badge.teal{background:var(--teal-bg);color:var(--teal);border-color:#bfe6d8}
+  section{scroll-margin-top:20px;margin-bottom:52px}
+  h2{font-size:24px;color:var(--blue-deep);margin:0 0 16px;padding-bottom:10px;border-bottom:2px solid var(--blue-bg)}
+  h2 .num{color:var(--blue);font-variant-numeric:tabular-nums;margin-right:10px}
+  h3{font-size:18px;color:var(--text);margin:28px 0 10px}
+  p{margin:10px 0}
+  ul,ol{margin:10px 0;padding-left:24px}
+  li{margin:5px 0}
+  code.inline{font-family:var(--mono);font-size:.9em;background:var(--code-bg);border:1px solid var(--border-soft);border-radius:5px;padding:1px 6px;color:var(--red)}
+  strong{color:var(--blue-deep)}
+  .callout{border-left:4px solid var(--blue);background:var(--blue-bg);border-radius:0 8px 8px 0;padding:12px 18px;margin:18px 0;font-size:14px}
+  .callout.tip{border-color:var(--teal);background:var(--teal-bg)}
+  .callout.warn{border-color:var(--amber);background:var(--amber-bg)}
+  .callout.purple{border-color:var(--purple);background:var(--purple-bg)}
+  .callout .lbl{font-weight:600;display:block;margin-bottom:3px}
+  .callout p{margin:4px 0}
+  .formula{background:var(--page);border:1px solid var(--border-soft);border-radius:10px;padding:16px 20px;margin:16px 0;font-family:var(--mono);font-size:14px;color:var(--blue-deep);text-align:center;line-height:1.9;overflow-x:auto}
+  .lsdemo{margin:18px 0;border:1px solid var(--border);border-radius:10px;padding:14px 16px;background:var(--surface)}
+  .lsdemo .legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:8px;font-size:12px;color:var(--muted)}
+  .lsdemo .legend span{display:flex;align-items:center;gap:5px}
+  .lsdemo svg{width:100%;height:auto;display:block}
+  .lsdemo .ctrl{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin:12px 0 6px}
+  .lsdemo .ctrl label{font-size:13px;display:flex;align-items:center;gap:8px}
+  .lsdemo .ctrl input[type=range]{width:150px}
+  .lsdemo .val{font-family:var(--mono);min-width:38px;color:var(--blue-deep)}
+  .lsdemo .readout{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px}
+  .lsdemo .cost{background:var(--page);border-radius:8px;padding:8px 16px}
+  .lsdemo .cost .lab{font-size:12px;color:var(--muted)}
+  .lsdemo .cost .num{font-size:22px;font-weight:600;font-family:var(--mono);color:var(--blue-deep)}
+  .lsdemo button{cursor:pointer;border:1px solid var(--border);background:var(--surface);border-radius:6px;padding:5px 12px;font-size:13px;color:var(--blue)}
+  .lsdemo button:hover{border-color:var(--blue)}
+  .lsdemo .hint{font-size:12px;color:var(--hint)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:18px 0}
+  .card{border:1px solid var(--border);border-radius:10px;padding:16px;background:var(--surface)}
+  .card h4{margin:0 0 6px;font-size:15px;color:var(--blue-deep)}
+  .card p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.6}
+  .card .tag{display:inline-block;font-size:11px;font-family:var(--mono);background:var(--code-bg);border:1px solid var(--border-soft);border-radius:4px;padding:1px 6px;margin-bottom:8px;color:var(--teal)}
+  .code{position:relative;margin:16px 0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--code-bg)}
+  .code .head{display:flex;align-items:center;justify-content:space-between;background:#eef1f4;border-bottom:1px solid var(--border);padding:7px 14px;font-size:12px;color:var(--muted);font-family:var(--mono)}
+  .code .copy{cursor:pointer;border:1px solid var(--border);background:var(--surface);border-radius:5px;padding:2px 10px;font-size:11.5px;color:var(--muted);font-family:var(--sans)}
+  .code .copy:hover{color:var(--blue);border-color:var(--blue)}
+  .code pre{margin:0;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;color:var(--text)}
+  .kw{color:#a626a4}.fn{color:#075db0}.cm{color:#8b949e;font-style:italic}.st{color:#c9502b}.nm{color:#986801}.tp{color:#0f6e56}
+  .out{background:#0d1117;color:#c9d1d9;border-radius:10px;padding:14px 18px;font-family:var(--mono);font-size:12.5px;line-height:1.6;overflow-x:auto;margin:14px 0}
+  .out .hi{color:#7ee787}.out .dim{color:#8b949e}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+  th,td{border:1px solid var(--border);padding:9px 12px;text-align:left;vertical-align:top}
+  th{background:var(--code-bg);color:var(--blue-deep);font-weight:600}
+  td code{font-family:var(--mono);font-size:12.5px;color:var(--red)}
+  .annot{display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1px dashed var(--border-soft)}
+  .annot:last-child{border-bottom:none}
+  .annot .n{flex:0 0 26px;height:26px;background:var(--blue-bg);color:var(--blue-deep);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+  .annot .body{font-size:14px}
+  .annot .body b{color:var(--blue-deep)}
+  .annot .body code{font-family:var(--mono);font-size:12.5px;background:var(--code-bg);padding:1px 5px;border-radius:4px;color:var(--red)}
+  footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);font-size:13px;color:var(--hint)}
+  @media(max-width:900px){aside{display:none}main{padding:28px 20px 60px;border:none}header.hero h1{font-size:25px}}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <div class="brand">Ceres 打基础<small>四块地基 · 边学边查</small></div>
+    <nav id="nav">
+      <div class="navtitle">数学直觉</div>
+      <a href="#intro">0. 先说清楚学什么</a>
+      <a href="#ls">1. 最小二乘直觉</a>
+      <div class="navtitle">C++ 三件套</div>
+      <a href="#functor">2. 仿函数 operator()</a>
+      <a href="#template">3. 模板函数</a>
+      <a href="#pointer">4. 指针与引用</a>
+      <div class="navtitle">跑起来</div>
+      <a href="#cmake">5. CMake 最小工程</a>
+      <a href="#walkthrough">6. 逐行拆解 Hello World</a>
+      <a href="#summary">7. 检验自己</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <h1>Ceres 打基础：四块地基</h1>
+      <p class="sub">不泛泛教 C++，只讲 Ceres 真正用得到的：最小二乘直觉 + 模板 + 仿函数 + 指针，最后用一个最小工程把它们串起来。</p>
+      <div class="badges">
+        <span class="badge">最小二乘</span>
+        <span class="badge teal">模板 template</span>
+        <span class="badge teal">仿函数 functor</span>
+        <span class="badge">指针 / 引用</span>
+        <span class="badge">CMake</span>
+      </div>
+    </header>
+
+    <section id="intro">
+      <h2><span class="num">00</span>先说清楚：到底要学什么</h2>
+      <p>Ceres 是一个 C++ 库，它的代码风格对新手不太友好。但你要补的基础其实非常聚焦，只有四块：</p>
+      <div class="cards">
+        <div class="card"><span class="tag">数学</span><h4>最小二乘直觉</h4><p>知道"调参数让误差最小"这回事即可，<strong>不用推公式</strong>。</p></div>
+        <div class="card"><span class="tag">C++</span><h4>仿函数</h4><p>把结构体当函数用，Ceres 的代价函数全是它。</p></div>
+        <div class="card"><span class="tag">C++</span><h4>模板</h4><p><code class="inline">template&lt;typename T&gt;</code>，让同一份代码支持自动求导。</p></div>
+        <div class="card"><span class="tag">C++</span><h4>指针 / 引用</h4><p><code class="inline">&amp;x</code> 传地址，让求解器能原地修改你的变量。</p></div>
+      </div>
+      <div class="callout tip"><span class="lbl">心态</span><p>这四块每块都只要"够用"的深度。不要去买一本 500 页的 C++  Primer 从头啃——边做边补是最快的。</p></div>
+    </section>
+
+    <section id="ls">
+      <h2><span class="num">01</span>最小二乘直觉</h2>
+      <p>假设有一堆观测点，你想找一条直线 <code class="inline">y = mx + c</code> 穿过它们。怎么算"最好的"那条线？做法是：对每个点，算出它到直线的<strong>残差</strong> r（竖直距离），把所有残差<strong>平方后求和</strong>，让这个总和最小。</p>
+      <div class="formula">
+        cost(m, c) = ½ &sum;<sub>i</sub> ( y<sub>i</sub> − (m·x<sub>i</sub> + c) )²  →  求使其最小的 m, c
+      </div>
+      <p>这就是最小二乘。<strong>为什么平方？</strong> 因为残差有正有负，直接相加会互相抵消；平方后都是正数，且大误差被惩罚得更重。<strong>为什么乘 ½？</strong> 纯粹为了后面求导时平方的 2 能和它约掉，不影响最优解。</p>
+
+      <div class="lsdemo" id="lsdemo">
+        <h3 style="margin-top:8px;">动手感受一下：拖动参数，看误差怎么变</h3>
+        <div class="legend">
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#185fa5"></span>观测点（带噪声）</span>
+          <span><span style="display:inline-block;width:16px;height:2px;background:#0f6e56;vertical-align:middle"></span>当前拟合直线</span>
+          <span><span style="display:inline-block;width:16px;height:0;border-top:2px dashed #ba7517;vertical-align:middle"></span>残差（每个点的误差）</span>
+        </div>
+        <svg id="lsSvg" viewBox="0 0 680 340" role="img" aria-label="可交互的最小二乘拟合图，拖动斜率与截距滑块观察残差与 cost 的变化">
+          <line x1="52" y1="300" x2="660" y2="300" stroke="#8b949e" stroke-width="1"/>
+          <line x1="52" y1="300" x2="52" y2="24" stroke="#8b949e" stroke-width="1"/>
+          <g id="lsGrid" font-size="11" fill="#8b949e"></g>
+          <g id="lsResid" stroke="#ba7517" stroke-width="1.5" stroke-dasharray="4 3"></g>
+          <line id="lsFit" x1="52" y1="290" x2="660" y2="290" stroke="#0f6e56" stroke-width="2.5"/>
+          <g id="lsPts" fill="#185fa5"></g>
+          <text x="356" y="336" text-anchor="middle" font-size="12" fill="#57606a">x</text>
+          <text x="16" y="160" text-anchor="middle" font-size="12" fill="#57606a" transform="rotate(-90 16 160)">y</text>
+        </svg>
+        <div class="ctrl">
+          <label>斜率 m <input id="lsM" type="range" min="-1" max="2" step="0.01" value="0"><span class="val" id="lsMv">0.00</span></label>
+          <label>截距 c <input id="lsC" type="range" min="-2" max="4" step="0.01" value="3"><span class="val" id="lsCv">3.00</span></label>
+        </div>
+        <div class="readout">
+          <div class="cost"><div class="lab">当前误差 cost = ½Σr²</div><div class="num" id="lsCost">0.00</div></div>
+          <button id="lsSolve">跳到最优解</button>
+          <span class="hint">目标：把 cost 降到最小 —— 这就是 Ceres 在做的事</span>
+        </div>
+      </div>
+
+      <h3>映射到 Ceres 的术语</h3>
+      <table>
+        <tr><th>你现在理解的</th><th>Ceres 里叫</th><th>代码里对应</th></tr>
+        <tr><td>要调的参数 m, c</td><td>ParameterBlock（参数块）</td><td><code>double m, c;</code></td></tr>
+        <tr><td>一个点的误差 yᵢ−(mxᵢ+c)</td><td>Residual（残差）</td><td><code>residual[0] = ...</code></td></tr>
+        <tr><td>误差平方和</td><td>目标函数 / cost</td><td>求解器内部计算</td></tr>
+        <tr><td>计算残差的那段逻辑</td><td>CostFunction（代价函数）</td><td><code>CostFunctor::operator()</code></td></tr>
+      </table>
+      <div class="callout purple"><span class="lbl">一句话记住</span><p>Ceres 就是一个"高级调参器"：你告诉它残差怎么算，它自动帮你找到让残差平方和最小的参数值。"非线性"只是说残差和参数的关系不是直线那么简单。</p></div>
+    </section>
+
+    <section id="functor">
+      <h2><span class="num">02</span>仿函数：把结构体当函数用</h2>
+      <p>普通函数这样写：<code class="inline">double f(double x) { return 10 - x; }</code>。而"仿函数"（functor）是一个结构体，它定义了 <code class="inline">operator()</code>，于是可以像函数一样被调用：</p>
+      <div class="code"><div class="head"><span>functor_basics.cc</span><button class="copy">复制</button></div><pre><code>#include &lt;iostream&gt;
+struct Minus {
+  double operator()(double x) const { return 10.0 - x; }
+};
+int main() {
+  Minus minus;                 // 先造一个对象
+  std::cout &lt;&lt; minus(3.0) &lt;&lt; "\n";  // 像函数一样调用它 → 7
+}</code></pre></div>
+      <p>Ceres 为什么喜欢仿函数而不是普通函数？因为仿函数是<strong>对象</strong>，可以携带数据。比如拟合直线时，每个观测点的 <code class="inline">xᵢ, yᵢ</code> 不同，我们可以在构造对象时把它们存进去：</p>
+      <div class="code"><div class="head"><span>带状态的仿函数 · 这就是 Ceres 代价函数的雏形</span><button class="copy">复制</button></div><pre><code>struct LineResidual {
+  LineResidual(double x, double y) : x_(x), y_(y) {}   // 观测点存进对象
+  double operator()(double m, double c) const {
+    return y_ - (m * x_ + c);                          // 残差
+  }
+ private:
+  double x_, y_;
+};
+// 用法：LineResidual r(2.0, 5.1);  r(0.5, 1.0) → 某个残差值</code></pre></div>
+      <div class="callout"><span class="lbl">要点</span><p><code class="inline">operator()</code> 后面的 <code class="inline">const</code> 表示这个函数不修改对象自身。Ceres 的代价函数也都带这个 const。</p></div>
+    </section>
+
+    <section id="template">
+      <h2><span class="num">03</span>模板：一份代码，两种用途</h2>
+      <p>现在把上面的仿函数改成模板：把具体的 <code class="inline">double</code> 换成类型参数 <code class="inline">T</code>。</p>
+      <div class="code"><div class="head"><span>template_basics.cc</span><button class="copy">复制</button></div><pre><code>template &lt;typename T&gt;
+T minus(T x) { return T(10.0) - x; }
+
+// 编译器会自动生成两个版本：
+// minus&lt;double&gt;(3.0) → 7.0        普通算术
+// minus&lt;int&gt;(3)    → 7           整数版本
+int main() {
+  std::cout &lt;&lt; minus(3.0) &lt;&lt; " " &lt;&lt; minus(3) &lt;&lt; "\n";
+}</code></pre></div>
+      <p>关键在 <code class="inline">T(10.0)</code>：把常量 10.0 也构造成类型 T。这样<strong>整个表达式都在 T 类型下运算</strong>。这一点在 Ceres 里至关重要。</p>
+      <h3>这正是 Ceres 的自动微分原理</h3>
+      <p>Ceres 会用两种类型来调用你写的模板残差函数：</p>
+      <ul>
+        <li><code class="inline">T = double</code>：普通计算，得到残差数值，用来评估"当前误差多大"。</li>
+        <li><code class="inline">T = Jet</code>：Ceres 的特殊类型，运算时<strong>顺带把导数也算出来</strong>，用来告诉求解器"往哪个方向调参数能让误差变小"。</li>
+      </ul>
+      <p>所以你只需要写一遍残差公式，导数 Ceres 全自动搞定。这就是官方教程 Hello World 里的写法：</p>
+      <div class="code"><div class="head"><span>Ceres 的标准代价函数写法</span><button class="copy">复制</button></div><pre><code>struct CostFunctor {
+  template &lt;typename T&gt;                          // 模板！
+  bool operator()(const T* const x, T* residual) const {
+    residual[0] = T(10.0) - x[0];                 // 用 T(10.0) 而非 10.0
+    return true;
+  }
+};</code></pre></div>
+      <div class="callout warn"><span class="lbl">新手最容易犯的错</span><p>把 <code class="inline">T(10.0)</code> 写成裸的 <code class="inline">10.0</code>，或者在函数里调用普通 <code class="inline">double</code> 库函数（如 <code class="inline">std::sin</code> 用在 Jet 上要用 <code class="inline">ceres::sin</code>）。这会让自动微分失效或编译报错。</p></div>
+    </section>
+
+    <section id="pointer">
+      <h2><span class="num">04</span>指针与引用：让求解器改你的变量</h2>
+      <p>Ceres 求解时会<strong>原地修改</strong>你传进去的参数变量。要做到这一点，必须传<strong>地址</strong>（指针），而不是传值。</p>
+      <div class="code"><div class="head"><span>pointer_basics.cc</span><button class="copy">复制</button></div><pre><code>#include &lt;iostream&gt;
+void setToTen(double* p) { *p = 10.0; }   // p 是地址，*p 是那个变量本身
+
+int main() {
+  double x = 5.0;
+  setToTen(&amp;x);                            // &amp;x 取 x 的地址传给函数
+  std::cout &lt;&lt; x &lt;&lt; "\n";                 // 输出 10，x 被改了
+}</code></pre></div>
+      <p>如果你写成传值 <code class="inline">setToTen(double p)</code>，函数里改的只是副本，外面的 <code class="inline">x</code> 不会变。Ceres 内部和这里完全一样：</p>
+      <div class="code"><div class="head"><span>Ceres 里传的就是局部变量的地址</span><button class="copy">复制</button></div><pre><code>double x = 0.5;                       // 待求参数，初值 0.5
+problem.AddResidualBlock(cost_function, nullptr, &amp;x);  // 传 &amp;x
+Solve(options, &amp;problem, &amp;summary);
+// 求解后 x 已经被就地改成了 10 附近的值</code></pre></div>
+      <table>
+        <tr><th>符号</th><th>含义</th><th>在 Ceres 中的例子</th></tr>
+        <tr><td><code>&amp;x</code></td><td>取变量 x 的地址</td><td><code>AddResidualBlock(..., &amp;x)</code> 传参数</td></tr>
+        <tr><td><code>*p</code></td><td>访问指针 p 指向的那个变量</td><td>残差函数里 <code>x[0]</code> 本质也是指针访问</td></tr>
+        <tr><td><code>T* residual</code></td><td>一个指针，用来"写回"结果</td><td><code>residual[0] = ...</code> 把算出的残差写进去</td></tr>
+      </table>
+      <div class="callout tip"><span class="lbl">类比</span><p>把 <code class="inline">&amp;x</code> 想象成把你家的<strong>地址</strong>交给别人，他才能到你家里改东西；传值则像是只给了他你家的一份<strong>照片</strong>，他改照片不影响你家。</p></div>
+    </section>
+
+    <section id="cmake">
+      <h2><span class="num">05</span>CMake 最小工程</h2>
+      <p>CMake 是 C++ 项目的构建工具：你写一份 <code class="inline">CMakeLists.txt</code> 描述"要用哪些库、编译哪些文件"，它帮你生成编译命令。小白只需掌握下面这个最小模板。</p>
+      <div class="code"><div class="head"><span>项目结构</span><button class="copy">复制</button></div><pre><code>my_ceres/
+├── CMakeLists.txt
+└── main.cc</code></pre></div>
+      <div class="code"><div class="head"><span>CMakeLists.txt</span><button class="copy">复制</button></div><pre><code>cmake_minimum_required(VERSION 3.10)   # 声明 cmake 最低版本
+project(my_ceres)                      # 项目名
+
+set(CMAKE_CXX_STANDARD 14)             # 用 C++14 编译
+
+find_package(Ceres REQUIRED)           # 找到已安装的 Ceres
+
+add_executable(main main.cc)           # 用 main.cc 生成可执行文件 main
+target_include_directories(main PRIVATE ${CERES_INCLUDE_DIRS})
+target_link_libraries(main ${CERES_LIBRARIES})  # 链接 Ceres 库</code></pre></div>
+      <h3>编译运行三步</h3>
+      <div class="out">mkdir build &amp;&amp; cd build      <span class="dim"># 建一个构建目录</span>
+cmake ..                      <span class="dim"># 生成构建文件</span>
+make                          <span class="dim"># 编译</span>
+./main                        <span class="dim"># 运行</span></div>
+      <div class="callout warn"><span class="lbl">报错先查这里</span><p><code class="inline">find_package(Ceres REQUIRED)</code> 找不到 Ceres，是因为它没装好或 CMake 不知道去哪找。这是新手 90% 编译失败的根源，跟你的算法代码无关。</p></div>
+    </section>
+
+    <section id="walkthrough">
+      <h2><span class="num">06</span>逐行拆解 Hello World</h2>
+      <p>现在把四块基础串起来。下面是完整的 Ceres 最小示例，逐行注释。</p>
+      <div class="code"><div class="head"><span>main.cc · 求 ½(10−x)² 的最小值</span><button class="copy">复制</button></div><pre><code>#include "ceres/ceres.h"        <span style="color:#0f6e56">// ① 引入 Ceres</span>
+#include &lt;iostream&gt;
+
+struct CostFunctor {            <span style="color:#0f6e56">// ② 仿函数：定义残差怎么算</span>
+  template &lt;typename T&gt;        <span style="color:#0f6e56">// ③ 模板：支持 double / Jet 两种调用</span>
+  bool operator()(const T* const x, T* residual) const {
+    residual[0] = T(10.0) - x[0];<span style="color:#0f6e56">//    残差 r = 10 - x，写回 residual</span>
+    return true;                <span style="color:#0f6e56">//    返回 true 表示计算成功</span>
+  }
+};
+
+int main() {
+  double x = 0.5;               <span style="color:#0f6e56">// ④ 待求参数，初值 0.5（会被原地修改）</span>
+
+  ceres::Problem problem;       <span style="color:#0f6e56">// ⑤ 创建一个优化问题</span>
+  problem.AddResidualBlock(     <span style="color:#0f6e56">// ⑥ 往问题里加一个残差块</span>
+      new ceres::AutoDiffCostFunction&lt;CostFunctor, 1, 1&gt;(), <span style="color:#0f6e56">// 自动微分</span>
+      nullptr,                  <span style="color:#0f6e56">//    损失函数：nullptr = 普通平方损失</span>
+      &amp;x);                      <span style="color:#0f6e56">//    要优化的参数：传地址！</span>
+
+  ceres::Solver::Options options;<span style="color:#0f6e56">// ⑦ 求解器配置</span>
+  options.minimizer_progress_to_stdout = true; <span style="color:#0f6e56">// 打印迭代过程</span>
+  ceres::Solver::Summary summary;<span style="color:#0f6e56">//    求解结果报告</span>
+  ceres::Solve(options, &amp;problem, &amp;summary); <span style="color:#0f6e56">// ⑧ 开跑！</span>
+
+  std::cout &lt;&lt; x &lt;&lt; "\n";      <span style="color:#0f6e56">// ⑨ 输出：约等于 10</span>
+  return 0;
+}</code></pre></div>
+      <div class="annot"><div class="n">1</div><div class="body"><b>引入头文件</b>：<code>ceres/ceres.h</code> 是核心头文件，包含了 Problem、Solver 等所有需要的类。</div></div>
+      <div class="annot"><div class="n">2</div><div class="body"><b>代价函数</b>：一个结构体，告诉你"残差怎么算"。Ceres 会反复调用它来评估当前参数的好坏。</div></div>
+      <div class="annot"><div class="n">3</div><div class="body"><b>模板 + T(10.0)</b>：让同一份残差公式既能算数值又能算导数。<code>AutoDiffCostFunction</code> 就靠这个工作。</div></div>
+      <div class="annot"><div class="n">4</div><div class="body"><b>参数 + 初值</b>：求解器从这里出发，一步步把 x 调整到最优。给个合理初值更容易收敛。</div></div>
+      <div class="annot"><div class="n">5</div><div class="body"><b>Problem</b>：装着所有残差块和参数的容器，就是要解的整个优化问题。</div></div>
+      <div class="annot"><div class="n">6</div><div class="body"><b>AddResidualBlock</b>：把一个代价函数挂到问题上。模板参数 <code>&lt;CostFunctor, 1, 1&gt;</code> 分别是"残差块类型、残差维度、参数维度"。</div></div>
+      <div class="annot"><div class="n">7</div><div class="body"><b>Options / Summary</b>：配置求解过程 + 接收求解报告。打开 progress 能看到每步 cost 怎么降。</div></div>
+      <div class="annot"><div class="n">8</div><div class="body"><b>Solve</b>：真正开始优化。跑完后 x 已经被改成了最优值。</div></div>
+      <div class="out"><span class="dim">iter      cost      cost_change  |gradient|   |step|</span>
+   0  4.512500e+01    0.00e+00    9.50e+00   0.00e+00
+   1  4.511598e-07    4.51e+01    9.50e-04   9.50e+00
+   2  5.012552e-16    4.51e-07    3.17e-08   9.50e-04
+<span class="hi">Final cost: 5.012552e-16   Termination: CONVERGENCE</span></div>
+      <div class="callout tip"><span class="lbl">你已经看懂了</span><p>如果你能讲清楚这 9 步在干什么，恭喜——Ceres 所有复杂示例（曲线拟合、BA、SLAM）都只是把第 ② 步的残差公式换掉、把第 ⑥ 步的残差块多加几个，骨架完全不变。</p></div>
+    </section>
+
+    <section id="summary">
+      <h2><span class="num">07</span>检验自己</h2>
+      <p>学完这一页，试着不看答案回答这几个问题。答得上来，基础就算打好了：</p>
+      <ol>
+        <li>最小二乘中的"残差"是什么？为什么要把它平方？</li>
+        <li>仿函数和普通函数相比，多了什么能力？（提示：能存数据）</li>
+        <li>为什么 Ceres 的代价函数要写成 <code class="inline">template&lt;typename T&gt;</code>？如果写成固定 <code class="inline">double</code> 会失去什么？</li>
+        <li><code class="inline">AddResidualBlock(..., &amp;x)</code> 里为什么是 <code class="inline">&amp;x</code> 而不是 <code class="inline">x</code>？</li>
+        <li><code class="inline">AutoDiffCostFunction&lt;CostFunctor, 1, 1&gt;</code> 的两个 1 分别是什么意思？</li>
+      </ol>
+      <details style="border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin-top:14px;">
+        <summary style="cursor:pointer;color:var(--blue-deep);font-weight:600;">点击展开参考答案</summary>
+        <ol>
+          <li>残差是预测值和观测值之差；平方是为了消除正负抵消并加重大误差的惩罚。</li>
+          <li>仿函数是对象，可以在成员变量里保存观测数据（如 xᵢ, yᵢ）。</li>
+          <li>为了让 Ceres 用 double 算残差、用 Jet 算导数；写死 double 就没法自动求导，得自己手推雅可比。</li>
+          <li>传地址才能让求解器原地修改 x；传值只改副本。</li>
+          <li>第一个 1 是残差维度（输出几个残差），第二个 1 是参数块维度（这个参数有几个数）。</li>
+        </ol>
+      </details>
+      <div class="callout"><span class="lbl">下一步</span><p>基础打好后，回到主教程 <a href="ceres_tutorial.html">ceres_tutorial.html</a> 的第 2 章跑通 Hello World，然后做第 5 章曲线拟合——那时你会发现自己已经能读懂代码了。</p></div>
+    </section>
+
+    <footer>配套讲义 · 与 ceres_tutorial.html 一起使用 · 建议顺序：先本页打基础，再读主教程。</footer>
+  </main>
+</div>
+
+<script>
+(function(){
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll('#nav a'));
+  var sections = navLinks.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+  function onScroll(){
+    var idx = 0;
+    for (var i=0;i<sections.length;i++){
+      if (sections[i] && sections[i].getBoundingClientRect().top <= 140) idx = i;
+    }
+    navLinks.forEach(function(a,i){ a.classList.toggle('active', i===idx); });
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function highlight(code){
+    var re = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(struct|template|typename|const|constexpr|double|float|int|bool|void|return|true|false|virtual|public|private|protected|new|delete|nullptr|NULL|static|for|if|else|while|using|namespace|explicit|auto|extern|this|sizeof|operator)\b|\b(AutoDiffCostFunction|CostFunction|Problem|Solver|Summary|Options|Solve|AddResidualBlock|CostFunctor|cmake_minimum_required|project|find_package|add_executable|target_include_directories|target_link_libraries|set|make|include|std|cout|endl)\b|\b(\d+\.?\d*(?:e[+-]?\d+)?)\b/g;
+    var out = '', last = 0, m;
+    while ((m = re.exec(code)) !== null) {
+      out += esc(code.slice(last, m.index));
+      var cls = m[1] ? 'cm' : m[2] ? 'st' : m[3] ? 'kw' : m[4] ? 'fn' : 'nm';
+      out += '<span class="' + cls + '">' + esc(m[0]) + '</span>';
+      last = m.index + m[0].length;
+    }
+    out += esc(code.slice(last));
+    return out;
+  }
+  document.querySelectorAll('.code pre code').forEach(function(el){
+    var txt = el.textContent;
+    if (txt.indexOf('<span') !== -1) return;
+    el.innerHTML = highlight(txt);
+  });
+  document.querySelectorAll('.code .copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var code = btn.closest('.code').querySelector('pre code').textContent;
+      navigator.clipboard.writeText(code).then(function(){
+        var old = btn.textContent; btn.textContent='已复制';
+        setTimeout(function(){btn.textContent=old;},1500);
+      });
+    });
+  });
+
+  (function(){
+    var svg = document.getElementById('lsSvg');
+    if (!svg) return;
+    var xs = [0,1,2,3,4,5,6,7,8,9,10];
+    var ys = [1.1,1.7,2.0,2.6,3.2,3.5,4.1,4.6,5.0,5.9,6.1];
+    var L=52, R=660, T=24, B=300, XMAX=10, YMAX=7;
+    function px(x){ return L + x/XMAX*(R-L); }
+    function py(y){ return B - y/YMAX*(B-T); }
+    var grid = document.getElementById('lsGrid');
+    var gx='', gy='';
+    for (var i=0;i<=XMAX;i++){
+      var X=px(i);
+      gx += '<line x1="'+X+'" y1="'+T+'" x2="'+X+'" y2="'+B+'" stroke="#eaeef2" stroke-width="1"/>';
+      gx += '<text x="'+X+'" y="'+(B+16)+'" text-anchor="middle">'+i+'</text>';
+    }
+    for (var j=0;j<=YMAX;j++){
+      var Y=py(j);
+      gy += '<line x1="'+L+'" y1="'+Y+'" x2="'+R+'" y2="'+Y+'" stroke="#eaeef2" stroke-width="1"/>';
+      gy += '<text x="'+(L-8)+'" y="'+(Y+4)+'" text-anchor="end">'+j+'</text>';
+    }
+    grid.innerHTML = gx+gy;
+    var pts='';
+    xs.forEach(function(x,i){ pts += '<circle cx="'+px(x)+'" cy="'+py(ys[i])+'" r="4.5"/>'; });
+    document.getElementById('lsPts').innerHTML = pts;
+
+    var mS=document.getElementById('lsM'), cS=document.getElementById('lsC');
+    var mL=document.getElementById('lsMv'), cL=document.getElementById('lsCv'), costEl=document.getElementById('lsCost');
+    var fit=document.getElementById('lsFit'), resid=document.getElementById('lsResid');
+    function update(){
+      var m=parseFloat(mS.value), c=parseFloat(cS.value);
+      mL.textContent=m.toFixed(2); cL.textContent=c.toFixed(2);
+      fit.setAttribute('y1', py(c));
+      fit.setAttribute('y2', py(m*XMAX+c));
+      var r='', cost=0;
+      for (var i=0;i<xs.length;i++){
+        var pred=m*xs[i]+c;
+        r += '<line x1="'+px(xs[i])+'" y1="'+py(ys[i])+'" x2="'+px(xs[i])+'" y2="'+py(pred)+'"/>';
+        cost += 0.5*Math.pow(pred-ys[i],2);
+      }
+      resid.innerHTML=r;
+      costEl.textContent=cost.toFixed(2);
+    }
+    mS.addEventListener('input',update);
+    cS.addEventListener('input',update);
+    document.getElementById('lsSolve').addEventListener('click',function(){
+      var n=xs.length, xb=0, yb=0, i;
+      for(i=0;i<n;i++){ xb+=xs[i]; yb+=ys[i]; }
+      xb/=n; yb/=n;
+      var num=0, den=0;
+      for(i=0;i<n;i++){ num+=(xs[i]-xb)*(ys[i]-yb); den+=(xs[i]-xb)*(xs[i]-xb); }
+      var bm=num/den, bc=yb-bm*xb;
+      mS.value=Math.max(-1,Math.min(2,bm)).toFixed(2);
+      cS.value=Math.max(-2,Math.min(4,bc)).toFixed(2);
+      update();
+    });
+    update();
+  })();
+})();
+</script>
+</body>
+</html>
