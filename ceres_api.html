@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ceres Solver API 使用手册 · 学习中心</title>
+<style>
+  :root{
+    --bg:#ffffff;--page:#f6f8fa;--surface:#ffffff;--text:#1f2328;--muted:#57606a;--hint:#8b949e;
+    --border:#d8dee4;--soft:#eaeef2;--blue:#185fa5;--deep:#0c447c;--bluebg:#e6f1fb;--blueln:#cfe3f7;
+    --teal:#0f6e56;--tealbg:#e1f5ee;--tealln:#bfe6d8;--amber:#854f0b;--amberbg:#faf0da;
+    --purple:#534ab7;--purplebg:#eeedfe;--coral:#993c1d;--coralbg:#faece7;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--page);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.75}
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .tbin{max-width:1120px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:600;color:var(--deep);font-size:14px;white-space:nowrap}
+  .logo .mark{width:26px;height:26px;border-radius:7px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px}
+  .crumbs{font-size:13px;color:var(--hint);flex:1}
+  .crumbs a{color:var(--muted)}
+  .homebtn{font-size:13px;color:var(--muted);white-space:nowrap}
+  .hero{background:var(--surface);border-bottom:1px solid var(--border)}
+  .hero .hin{max-width:1120px;margin:0 auto;padding:44px 24px 36px}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.04em;padding:4px 12px;border-radius:99px;margin-bottom:14px;color:#534ab7;background:#eeedfe;border:1px solid #cecbf6}
+  .hero h1{font-size:36px;line-height:1.25;margin:0 0 12px;color:var(--deep);letter-spacing:-.02em}
+  .hero .lead{font-size:16.5px;color:var(--muted);margin:0;max-width:800px;line-height:1.7}
+  .hero .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+  .hero .meta span{font-size:12.5px;color:var(--muted);border:1px solid var(--border);border-radius:99px;padding:4px 13px;background:var(--page)}
+  .wrap{max-width:1120px;margin:0 auto;padding:8px 24px 0}
+  .grid{display:grid;grid-template-columns:236px 1fr;gap:38px}
+  aside{position:sticky;top:64px;align-self:start;height:calc(100vh - 80px);overflow:auto;padding:28px 0 40px}
+  aside .ttl{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--hint);padding:0 12px 8px}
+  aside a{display:block;font-size:13px;color:var(--muted);padding:7px 12px;border-left:2px solid transparent;border-radius:0 6px 6px 0}
+  aside a:hover{background:var(--blue-bg);color:var(--deep);text-decoration:none}
+  aside a.active{background:var(--blue-bg);color:var(--deep);border-left-color:var(--blue);font-weight:600}
+  aside .sub{padding-left:24px;font-size:12.3px}
+  article{min-width:0;padding:28px 0 60px}
+  section{scroll-margin-top:80px;margin-bottom:52px}
+  h2{font-size:24px;color:var(--deep);margin:0 0 8px;padding-bottom:10px;border-bottom:2px solid var(--blue-bg);letter-spacing:-.01em}
+  h2 .num{color:var(--blue);font-family:var(--mono);font-size:17px;margin-right:10px}
+  h3{font-size:17.5px;margin:26px 0 8px;color:var(--deep)}
+  h4{font-size:14.5px;margin:18px 0 6px;color:var(--deep)}
+  p{margin:10px 0}
+  ul,ol{margin:10px 0;padding-left:24px}
+  li{margin:5px 0}
+  strong{color:var(--deep)}
+  code.inline{font-family:var(--mono);font-size:.87em;background:var(--page);border:1px solid var(--soft);border-radius:5px;padding:1px 6px;color:var(--coral)}
+  .lead-p{font-size:15.5px;color:var(--muted)}
+  .call{border-left:4px solid var(--blue);background:var(--blue-bg);border-radius:0 9px 9px 0;padding:13px 18px;margin:16px 0;font-size:14px}
+  .call b.lbl{display:block;margin-bottom:4px}
+  .call p{margin:4px 0}
+  .call.tip{border-color:var(--teal);background:var(--teal-bg)}
+  .call.warn{border-color:var(--amber);background:var(--amber-bg)}
+  .call.note{border-color:var(--purple);background:var(--purple-bg)}
+  .code{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:15px 0;background:var(--page)}
+  .code .h{background:#eef1f4;border-bottom:1px solid var(--border);padding:6px 14px;font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:space-between}
+  .code .copy{cursor:pointer;border:1px solid var(--border);background:var(--surface);border-radius:5px;padding:2px 10px;font-size:11.5px;color:var(--muted);font-family:var(--sans)}
+  .code .copy:hover{color:var(--blue);border-color:var(--blue)}
+  .code pre{margin:0;padding:15px 17px;overflow:auto;font-family:var(--mono);font-size:12.7px;line-height:1.68;color:var(--text)}
+  .kw{color:#a626a4}.fn{color:#075db0}.cm{color:#8b949e;font-style:italic}.st{color:#c9502b}.nm{color:#986801}.tp{color:#0f6e56}
+  .sig{background:#0d1117;color:#e6edf3;border-radius:9px;padding:12px 16px;margin:12px 0;font-family:var(--mono);font-size:12.8px;line-height:1.7;overflow:auto}
+  .sig .ret{color:#7ee787}.sig .fn{color:#79c0ff}.sig .tp{color:#ffa657}.sig .cm{color:#8b949e;font-style:italic}
+  table{width:100%;border-collapse:collapse;margin:15px 0;font-size:13.6px}
+  th,td{border:1px solid var(--border);padding:8px 11px;text-align:left;vertical-align:top}
+  th{background:var(--page);color:var(--deep);font-weight:600}
+  td code{font-family:var(--mono);font-size:12.2px;color:var(--coral)}
+  .gridcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:13px;margin:16px 0}
+  .gcard{border:1px solid var(--border);border-radius:11px;padding:16px;background:var(--surface)}
+  .gcard .tag{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--purplebg);border:1px solid #cecbf6;border-radius:4px;padding:1px 8px;margin-bottom:9px;color:var(--purple)}
+  .gcard h4{margin:0 0 6px;font-size:14.5px}
+  .gcard p{margin:0;font-size:13px;color:var(--muted);line-height:1.6}
+  .annot{border-left:3px solid var(--blueln);padding:2px 0 2px 14px;margin:12px 0;color:var(--muted);font-size:13.8px}
+  .annot b{color:var(--deep)}
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:18px 0}
+  .flow .node{border:1px solid var(--blueln);background:var(--bluebg);color:var(--deep);border-radius:9px;padding:9px 15px;font-size:13.5px;font-weight:600}
+  .flow .arw{color:var(--hint);font-size:18px}
+  .toc-inline{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px 20px;margin:18px 0}
+  .toc-inline a{display:inline-block;font-size:13px;margin:3px 14px 3px 0}
+  details{border:1px solid var(--border);border-radius:9px;padding:11px 16px;margin:12px 0;background:var(--surface)}
+  summary{cursor:pointer;color:var(--deep);font-weight:600;font-size:14px}
+  .navbot{display:flex;gap:16px;justify-content:space-between;margin-top:30px;padding-top:22px;border-top:1px solid var(--border)}
+  .navbot a{flex:1;border:1px solid var(--border);border-radius:11px;padding:14px 18px;background:var(--surface)}
+  .navbot a:hover{border-color:var(--blue);text-decoration:none;transform:translateY(-1px)}
+  .navbot .lbl{font-size:12px;color:var(--hint)}
+  .navbot .ttl{font-size:15px;font-weight:600;color:var(--deep);display:block;margin-top:2px}
+  .navbot .r{text-align:right}
+  .navbot .sp{flex:0 0 120px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}aside{display:none}.hero h1{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="tbin">
+  <div class="logo"><span class="mark">C</span> Ceres 学习中心</div>
+  <div class="crumbs"><a href="index.html">首页</a> / API 使用手册</div>
+  <a class="homebtn" href="index.html">返回首页</a>
+</div></div>
+
+<div class="hero"><div class="hin">
+  <span class="kicker">REFERENCE · 参考手册</span>
+  <h1>Ceres Solver API 使用手册</h1>
+  <p class="lead">系统梳理 Ceres 的核心 API：从建模容器 <code class="inline">Problem</code>、代价函数家族、鲁棒损失与流形，到求解配置 <code class="inline">Solver::Options</code> 与结果 <code class="inline">Solver::Summary</code>。每个接口都给出真实签名、参数说明和可直接用的示例代码。</p>
+  <div class="meta">
+    <span>面向 Ceres 2.x</span>
+    <span>8 大章节</span>
+    <span>含 20+ 示例代码</span>
+    <span>基于官方头文件核实</span>
+  </div>
+</div></div>
+
+<div class="wrap"><div class="grid">
+  <aside><div class="ttl">本页目录</div>
+    <a href="#api-overview">API 总览</a>
+    <a href="#solve">Solve 入口</a>
+    <a href="#problem">Problem 建模容器</a>
+    <a href="#costfunction">CostFunction 家族</a>
+    <a href="#loss">LossFunction 鲁棒损失</a>
+    <a href="#manifold">Manifold 流形</a>
+    <a href="#options">Solver::Options</a>
+    <a href="#summary">Solver::Summary</a>
+    <a href="#full-example">综合示例</a>
+    <a href="#cheatsheet">速查表与踩坑</a>
+  </aside>
+  <article>
+
+<!-- ============ 01 API 总览 ============ -->
+<section id="api-overview"><h2><span class="num">01</span>API 总览：一张图看懂各司其职</h2>
+<p class="lead-p">用 Ceres 解题，本质上就是把"要优化什么、误差怎么算、怎么求解"这三件事分别交给几个对象。搞清楚它们的分工，再看每个 API 就顺了。</p>
+<div class="flow">
+  <span class="node">CostFunctor<br>残差公式</span><span class="arw">→</span>
+  <span class="node">CostFunction<br>(AutoDiff 包装)</span><span class="arw">→</span>
+  <span class="node">Problem<br>AddResidualBlock</span><span class="arw">→</span>
+  <span class="node">Solver::Solve</span><span class="arw">→</span>
+  <span class="node">Solver::Summary</span>
+</div>
+<div class="gridcards">
+  <div class="gcard"><span class="tag">建模</span><h4>ceres::Problem</h4><p>装参数块和残差块的容器。你告诉它"哪些量要求、每个误差怎么算"，它组织成优化问题。</p></div>
+  <div class="gcard"><span class="tag">残差</span><h4>CostFunction 家族</h4><p>定义残差怎么算、雅可比怎么来。常用 AutoDiffCostFunction，写公式即可自动求导。</p></div>
+  <div class="gcard"><span class="tag">鲁棒</span><h4>LossFunction 家族</h4><p>可选。给残差套一层鲁棒损失（Huber/Cauchy），抑制离群点。不传就是普通平方损失。</p></div>
+  <div class="gcard"><span class="tag">约束</span><h4>Manifold 家族</h4><p>可选。约束参数活在流形上（如单位四元数、角度周期），更新时自动投影回合法空间。</p></div>
+  <div class="gcard"><span class="tag">配置</span><h4>Solver::Options</h4><p>求解器的所有旋钮：用哪种线性求解器、迭代上限、收敛精度、线程数、是否打印日志。</p></div>
+  <div class="gcard"><span class="tag">结果</span><h4>Solver::Summary</h4><p>求解后拿它看结果：收敛没有、初末 cost、迭代次数、各阶段耗时、完整报告。</p></div>
+</div>
+<div class="call tip"><b class="lbl">头文件速查</b><p><code class="inline">#include "ceres/ceres.h"</code> 是最省事的写法，它已经包含了 problem、cost_function、solver、loss_function、manifold 等常用头文件。细分头文件如 <code class="inline">ceres/problem.h</code>、<code class="inline">ceres/autodiff_cost_function.h</code> 按需引入。</p></div>
+</section>
+
+<!-- ============ 02 Solve 入口 ============ -->
+<section id="solve"><h2><span class="num">02</span>求解入口：ceres::Solve()</h2>
+<p class="lead-p">所有求解都从这一个全局函数开始。它把配置、问题、结果三者串起来。</p>
+<div class="sig"><span class="ret">void</span> <span class="fn">Solve</span>(<span class="tp">const Solver::Options</span>&amp; options,
+       <span class="tp">Problem</span>* problem,
+       <span class="tp">Solver::Summary</span>* summary);</div>
+<table>
+  <tr><th>参数</th><th>说明</th></tr>
+  <tr><td><code>options</code></td><td>输入。求解配置，决定用什么算法、迭代多久、精度多少。</td></tr>
+  <tr><td><code>problem</code></td><td>输入/输出。你构建的问题；求解后其中的参数块会被<strong>原地修改</strong>为最优值。</td></tr>
+  <tr><td><code>summary</code></td><td>输出。求解过程的统计与诊断信息。</td></tr>
+</table>
+<div class="code"><div class="h"><span>最小调用骨架</span><button class="copy">复制</button></div><pre><code>ceres::Problem problem;
+// ... 向 problem 添加残差块 ...
+
+ceres::Solver::Options options;
+options.max_num_iterations = 100;
+options.linear_solver_type = ceres::DENSE_QR;
+options.minimizer_progress_to_stdout = true;
+
+ceres::Solver::Summary summary;
+ceres::Solve(options, &amp;problem, &amp;summary);
+
+std::cout &lt;&lt; summary.BriefReport() &lt;&lt; std::endl;</code></pre></div>
+<div class="call note"><b class="lbl">注意</b><p><code class="inline">Solve</code> 是同步阻塞的，返回时参数已经更新完毕。参数块必须是有效的 <code class="inline">double*</code>，且在整个求解期间保持内存有效。</p></div>
+</section>
+
+<!-- ============ 03 Problem ============ -->
+<section id="problem"><h2><span class="num">03</span>Problem：建模容器</h2>
+<p class="lead-p"><code class="inline">ceres::Problem</code> 是你搭优化问题的主战场。核心就两件事：<strong>加参数块</strong>、<strong>加残差块</strong>。其余接口多用于精细控制和诊断。</p>
+
+<h3>3.1 AddResidualBlock — 添加残差块（最核心）</h3>
+<div class="sig"><span class="cm">// 最常用：直接列出各参数块的指针（最多 10 个）</span>
+<span class="kw">template</span>&lt;<span class="kw">typename</span>... Ts&gt;
+<span class="tp">ResidualBlockId</span> <span class="fn">AddResidualBlock</span>(<span class="tp">CostFunction</span>* cost_function,
+                     <span class="tp">LossFunction</span>* loss_function,
+                     <span class="kw">double</span>* x0, Ts*... xs);
+
+<span class="cm">// 用 vector 传参数块</span>
+<span class="tp">ResidualBlockId</span> <span class="fn">AddResidualBlock</span>(<span class="tp">CostFunction</span>*, <span class="tp">LossFunction</span>*,
+                     <span class="kw">const</span> std::vector&lt;<span class="kw">double</span>*&gt;&amp; parameter_blocks);
+
+<span class="cm">// 用数组 + 数量传参数块</span>
+<span class="tp">ResidualBlockId</span> <span class="fn">AddResidualBlock</span>(<span class="tp">CostFunction</span>*, <span class="tp">LossFunction</span>*,
+                     <span class="kw">double</span>* <span class="kw">const</span>* <span class="kw">const</span> parameter_blocks,
+                     <span class="kw">int</span> num_parameter_blocks);</div>
+<table>
+  <tr><th>参数</th><th>说明</th></tr>
+  <tr><td><code>cost_function</code></td><td>定义残差怎么算。它自带"期望的参数块尺寸"信息，Ceres 会校验与传入参数块是否匹配。</td></tr>
+  <tr><td><code>loss_function</code></td><td>鲁棒损失。传 <code>nullptr</code> 表示普通平方损失；传 <code>new ceres::CauchyLoss(...)</code> 等做鲁棒拟合。</td></tr>
+  <tr><td><code>x0, xs...</code></td><td>这个残差依赖的参数块指针。只传它真正依赖的，别偷懒全传。</td></tr>
+</table>
+<div class="annot"><b>所有权：</b>Problem 默认接管 cost_function 和 loss_function，析构时只 delete 一次——所以同一个 cost_function 对象可以安全复用到多个残差块。若想自己管理生命周期，用 <code class="inline">Problem::Options</code> 里的 ownership 枚举。</div>
+<div class="annot"><b>隐式添加：</b>参数块没显式 AddParameterBlock 也会在这里被自动加进去。显式加只是为了多一层尺寸检查。</div>
+
+<h3>3.2 AddParameterBlock — 显式添加参数块</h3>
+<div class="sig"><span class="kw">void</span> <span class="fn">AddParameterBlock</span>(<span class="kw">double</span>* values, <span class="kw">int</span> size);
+<span class="kw">void</span> <span class="fn">AddParameterBlock</span>(<span class="kw">double</span>* values, <span class="kw">int</span> size, <span class="tp">Manifold</span>* manifold);</div>
+<p>什么时候需要显式调用？当你想给参数块绑定<strong>流形</strong>（见第 06 章），或想让 Ceres 提前做尺寸校验时。同一指针重复调用相同参数会被忽略；相同指针不同 size 会直接崩溃。</p>
+
+<h3>3.3 SetManifold — 给参数块绑定流形</h3>
+<div class="sig"><span class="kw">void</span> <span class="fn">SetManifold</span>(<span class="kw">double</span>* values, <span class="tp">Manifold</span>* manifold);
+<span class="cm">// Ceres 2.2 起，旧的 SetParameterization(LocalParameterization*) 已弃用</span></div>
+<div class="code"><div class="h"><span>给四元数和角度绑定流形</span><button class="copy">复制</button></div><pre><code>double q[4] = {0, 0, 0, 1};        // 单位四元数
+double angle[1] = {0.0};           // 角度
+problem.AddParameterBlock(q, 4);
+problem.AddParameterBlock(angle, 1);
+problem.SetManifold(q, new ceres::EigenQuaternionManifold());
+problem.SetManifold(angle, new ceres::AngleManifold());</code></pre></div>
+
+<h3>3.4 固定 / 释放参数块</h3>
+<div class="sig"><span class="kw">void</span> <span class="fn">SetParameterBlockConstant</span>(<span class="kw">const</span> <span class="kw">double</span>* values); <span class="cm">// 固定，不参与优化</span>
+<span class="kw">void</span> <span class="fn">SetParameterVariable</span>(<span class="kw">double</span>* values);          <span class="cm">// 恢复可变</span>
+<span class="kw">bool</span> <span class="fn">IsParameterBlockConstant</span>(<span class="kw">const</span> <span class="kw">double</span>* values) <span class="kw">const</span>;</div>
+<p>标定场景常用来固定某些已知量：比如已知相机内参时把它设为常量，只优化外参。</p>
+
+<h3>3.5 参数边界约束</h3>
+<div class="sig"><span class="kw">void</span> <span class="fn">SetParameterLowerBound</span>(<span class="kw">double</span>* values, <span class="kw">int</span> index, <span class="kw">double</span> lower_bound);
+<span class="kw">void</span> <span class="fn">SetParameterUpperBound</span>(<span class="kw">double</span>* values, <span class="kw">int</span> index, <span class="kw">double</span> upper_bound);</div>
+<div class="code"><div class="h"><span>把某参数限制在 [0.1, 10]</span><button class="copy">复制</button></div><pre><code>double focal[1] = {1.0};
+problem.SetParameterLowerBound(focal, 0, 0.1);
+problem.SetParameterUpperBound(focal, 0, 10.0);</code></pre></div>
+<div class="call warn"><b class="lbl">边界 + 流形冲突</b><p>一个参数块如果绑定了 Manifold，通常不要再设上下界——二者语义冲突，Ceres 会报错。需要约束流形参数请用专门的流形类型。</p></div>
+
+<h3>3.6 诊断与查询接口</h3>
+<table>
+  <tr><th>接口</th><th>用途</th></tr>
+  <tr><td><code>NumParameterBlocks()</code> / <code>NumResidualBlocks()</code> / <code>NumParameters()</code></td><td>统计参数块数 / 残差块数 / 标量参数总数。</td></tr>
+  <tr><td><code>HasParameterBlock(const double*)</code></td><td>判断指针是否已是参数块。</td></tr>
+  <tr><td><code>ParameterBlockTangentSize(const double*)</code></td><td>参数块的切空间维度（流形下可能小于 size）。</td></tr>
+  <tr><td><code>RemoveResidualBlock(ResidualBlockId)</code></td><td>移除残差块。</td></tr>
+  <tr><td><code>RemoveParameterBlock(const double*)</code></td><td>移除参数块及依赖它的残差。</td></tr>
+  <tr><td><code>Evaluate(...)</code></td><td>求解后手动计算残差、梯度、雅可比（做数值校验时很有用）。</td></tr>
+</table>
+<div class="call tip"><b class="lbl">智能剪枝</b><p>Ceres 会自动分析依赖关系，只求解真正影响自由参数的子问题。比如 100 万个参数块里只有一个可变、只有 10 个残差依赖它，计算量就等同于只有 1 个参数块和 10 个残差——所以不必手动拆问题。</p></div>
+</section>
+
+<!-- ============ 04 CostFunction ============ -->
+<section id="costfunction"><h2><span class="num">04</span>CostFunction 家族：定义残差与导数</h2>
+<p class="lead-p">这一族回答两个问题：<strong>残差怎么算</strong>，以及<strong>雅可比（导数）从哪来</strong>。不同子类就是导数来源不同。实际项目里绝大多数用 <code class="inline">AutoDiffCostFunction</code>。</p>
+
+<h3>4.1 CostFunction — 抽象基类</h3>
+<div class="sig"><span class="kw">class</span> <span class="tp">CostFunction</span> {
+ <span class="kw">virtual bool</span> <span class="fn">Evaluate</span>(<span class="kw">double</span> <span class="kw">const</span>* <span class="kw">const</span>* parameters,
+                  <span class="kw">double</span>* residuals,
+                  <span class="kw">double</span>** jacobians) <span class="kw">const</span> = 0;
+ <span class="kw">virtual int</span> <span class="fn">NumResiduals</span>() <span class="kw">const</span> = 0;
+};</div>
+<p>这是所有代价函数的基类。<code class="inline">parameters</code> 是各参数块的数组，<code class="inline">residuals</code> 输出的残差向量，<code class="inline">jacobians</code> 输出的雅可比（可能为 nullptr，表示这次不要雅可比）。直接继承它意味着<strong>手写解析雅可比</strong>。</p>
+
+<h3>4.2 SizedCostFunction — 固定尺寸 + 手写雅可比</h3>
+<div class="sig"><span class="kw">template</span>&lt;<span class="kw">int</span> kNumResiduals, <span class="kw">int</span>... ParameterBlockSizes&gt;
+<span class="kw">class</span> <span class="tp">SizedCostFunction</span> : <span class="kw">public</span> <span class="tp">CostFunction</span>;
+
+<span class="cm">// 只需实现 Evaluate，维度由模板参数给定</span>
+<span class="kw">virtual bool</span> <span class="fn">Evaluate</span>(<span class="kw">double</span> <span class="kw">const</span>* <span class="kw">const</span>* parameters,
+                  <span class="kw">double</span>* residuals,
+                  <span class="kw">double</span>** jacobians) <span class="kw">const</span>;</div>
+<div class="code"><div class="h"><span>手写雅可比示例：残差 = x² − y</span><button class="copy">复制</button></div><pre><code>struct MyCost : ceres::SizedCostFunction&lt;1, 1, 1&gt; {
+  bool Evaluate(double const* const* params, double* residuals,
+                double** jacobians) const override {
+    double x = params[0][0], y = params[1][0];
+    residuals[0] = x*x - y;
+    if (jacobians) {
+      if (jacobians[0]) jacobians[0][0] = 2*x;   // ∂r/∂x
+      if (jacobians[1]) jacobians[1][0] = -1;    // ∂r/∂y
+    }
+    return true;
+  }
+};</code></pre></div>
+<div class="annot"><b>适用：</b>对性能极致敏感、且能轻松写出正确导数的场景。缺点是导数极易写错且难维护。</div>
+
+<h3>4.3 AutoDiffCostFunction — 自动微分（首选）</h3>
+<div class="sig"><span class="kw">template</span>&lt;<span class="kw">typename</span> CostFunctor, <span class="kw">int</span> kNumResiduals, <span class="kw">int</span>... ParameterBlockSizes&gt;
+<span class="kw">class</span> <span class="tp">AutoDiffCostFunction</span> : <span class="kw">public</span> <span class="tp">SizedCostFunction</span>&lt;kNumResiduals, ParameterBlockSizes...&gt;;
+
+<span class="cm">// 构造</span>
+<span class="fn">AutoDiffCostFunction</span>(CostFunctor* functor,
+                    <span class="tp">Ownership</span> ownership = TAKE_OWNERSHIP);</div>
+<p>只要写一个带模板 <code class="inline">operator()</code> 的仿函数，Ceres 用前向模式自动微分同时算出残差和雅可比。<strong>模板参数三个数依次是：残差维度、各参数块维度。</strong></p>
+<div class="code"><div class="h"><span>残差 2 维，两个参数块分别 9 维和 3 维（典型 BA 重投影）</span><button class="copy">复制</button></div><pre><code>struct ReprojectionError {
+  template &lt;typename T&gt;
+  bool operator()(const T* const camera, const T* const point, T* residual) const {
+    // ... 用 T 类型运算写残差公式，Ceres 自动带出导数
+    residual[0] = ...; residual[1] = ...;
+    return true;
+  }
+};
+
+auto* cost = new ceres::AutoDiffCostFunction&lt;ReprojectionError, 2, 9, 3&gt;(
+    new ReprojectionError(observed_x, observed_y));</code></pre></div>
+<div class="call warn"><b class="lbl">两个高频坑</b><p>① 常量要写成 <code class="inline">T(10.0)</code> 而不是裸 <code class="inline">10.0</code>；② 对 Jet 类型要用 <code class="inline">ceres::sin/cos/exp</code> 而不是 <code class="inline">std::sin</code>。否则自动微分失效或编译报错。</p></div>
+
+<h3>4.4 NumericDiffCostFunction — 数值微分</h3>
+<div class="sig"><span class="kw">template</span>&lt;<span class="kw">typename</span> CostFunctor,
+         <span class="tp">NumericDiffMethodType</span> method = CENTRAL,
+         <span class="kw">int</span> kNumResiduals, <span class="kw">int</span>... ParameterBlockSizes&gt;
+<span class="kw">class</span> <span class="tp">NumericDiffCostFunction</span>;</div>
+<p>当残差函数无法模板化（比如内部调用了不可改的第三方库）时用数值差分近似导数。方法可选 <code class="inline">CENTRAL</code>（中心差分，默认更准）、<code class="inline">FORWARD</code>、<code class="inline">RIDDERS</code>。仿函数用普通 <code class="inline">double</code> 写即可。</p>
+<div class="code"><div class="h"><span>数值微分写法</span><button class="copy">复制</button></div><pre><code>struct CostFunctor {
+  bool operator()(const double* const x, double* residual) const {
+    residual[0] = 10.0 - x[0];
+    return true;
+  }
+};
+auto* cost = new ceres::NumericDiffCostFunction&lt;CostFunctor, ceres::CENTRAL, 1, 1&gt;(
+    new CostFunctor);</code></pre></div>
+<div class="annot"><b>代价：</b>精度受步长影响、比自动微分慢（要多次求值）。能用自动微分就别用它。</div>
+
+<h3>4.5 DynamicAutoDiffCostFunction — 运行时维度</h3>
+<p>当参数块数量在编译期不确定（如 IMU 预积分窗口长度可变）时使用。仿函数的 <code class="inline">operator()</code> 接收指针数组和计数。复杂度最高，普通场景用不到。</p>
+
+<h3>4.6 四种方式怎么选</h3>
+<table>
+  <tr><th>方式</th><th>导数来源</th><th>精度</th><th>速度</th><th>推荐度</th></tr>
+  <tr><td><code>AutoDiffCostFunction</code></td><td>自动微分</td><td>机器精度</td><td>快</td><td>⭐⭐⭐⭐⭐ 首选</td></tr>
+  <tr><td><code>SizedCostFunction</code></td><td>手写解析</td><td>精确</td><td>最快</td><td>⭐⭐⭐ 性能瓶颈时</td></tr>
+  <tr><td><code>NumericDiffCostFunction</code></td><td>数值差分</td><td>近似</td><td>慢</td><td>⭐⭐ 无法模板化时</td></tr>
+  <tr><td><code>DynamicAutoDiffCostFunction</code></td><td>自动微分</td><td>机器精度</td><td>较快</td><td>⭐⭐ 动态维度时</td></tr>
+</table>
+</section>
+
+<!-- ============ 05 LossFunction ============ -->
+<section id="loss"><h2><span class="num">05</span>LossFunction：鲁棒损失</h2>
+<p class="lead-p">默认情况下，残差越大惩罚按平方增长，离群点会把结果拽歪。给残差套一个鲁棒损失函数，让大残差的影响"封顶"，就能抗离群点。作为 <code class="inline">AddResidualBlock</code> 的第二个参数传入。</p>
+<table>
+  <tr><th>类</th><th>损失 ρ(z)</th><th>特点 / 用途</th></tr>
+  <tr><td><code>TrivialLoss</code></td><td>z²</td><td>标准平方损失（等价不传），无鲁棒性。</td></tr>
+  <tr><td><code>HuberLoss(a)</code></td><td>|z|≤a: z²；否则 a(2|z|−a)</td><td>小残差按平方、大残差线性增长。最常用，温和。</td></tr>
+  <tr><td><code>CauchyLoss(a)</code></td><td>a²·log(1+(z/a)²)</td><td>大残差影响回落，抑制离群点更激进。经典选择。</td></tr>
+  <tr><td><code>SoftLOneLoss(a)</code></td><td>2(√(1+z²/a)−1)</td><td>类似 Huber 但处处可导平滑。</td></tr>
+  <tr><td><code>ArcTanLoss(a)</code></td><td>a²·arctan²(z/a)</td><td>更强抑制，用于极端离群点。</td></tr>
+  <tr><td><code>ScaledLoss(raw, a, ownership)</code></td><td>a·ρ(z)</td><td>给任意损失再乘一个尺度系数。</td></tr>
+</table>
+<div class="code"><div class="h"><span>使用鲁棒损失</span><button class="copy">复制</button></div><pre><code>// 每个残差块套 Cauchy 损失，尺度参数 a=1.0
+problem.AddResidualBlock(
+    new ceres::AutoDiffCostFunction&lt;CostFunctor, 1, 1&gt;(new CostFunctor),
+    new ceres::CauchyLoss(1.0),   // ← 这里；不鲁棒就传 nullptr
+    &amp;x);
+
+// 组合：把 Huber 损失整体缩放 0.5
+auto* loss = new ceres::ScaledLoss(new ceres::HuberLoss(2.0), 0.5,
+                                   ceres::TAKE_OWNERSHIP);</code></pre></div>
+<div class="call warn"><b class="lbl">尺度参数 a 很关键</b><p>a 要和你的典型残差量级匹配。a 远大于残差 ≈ 没加鲁棒性；a 太小则正常点也被当离群点。建议先跑一遍普通最小二乘，看看典型残差大小再定 a。</p></div>
+<div class="call note"><b class="lbl">底层接口（了解即可）</b><p>所有损失都继承 <code class="inline">LossFunction</code>，核心方法 <code class="inline">Evaluate(double s, double rho[3])</code>：输入平方残差 s=z²，输出 ρ(s)、ρ′(s)、ρ″(s) 三个值。一般无需自己实现。</p></div>
+</section>
+
+<!-- ============ 06 Manifold ============ -->
+<section id="manifold"><h2><span class="num">06</span>Manifold：流形约束</h2>
+<p class="lead-p">有些参数自带几何约束：四元数必须单位长度、角度按 2π 循环。直接当普通 double 更新会破坏约束。Manifold 让参数更新"贴着约束面走"，更新后仍合法。<strong>Ceres 2.2 起用它取代旧的 LocalParameterization。</strong></p>
+
+<h3>6.1 内置流形类</h3>
+<table>
+  <tr><th>类</th><th>Ambient / Tangent</th><th>用途</th></tr>
+  <tr><td><code>EigenQuaternionManifold</code></td><td>4 / 3</td><td>Eigen 四元数，内存布局 [x,y,z,w]，保证单位长度。最常用。</td></tr>
+  <tr><td><code>QuaternionManifold</code></td><td>4 / 3</td><td>四元数，布局 [w,x,y,z]。</td></tr>
+  <tr><td><code>AngleManifold</code></td><td>1 / 1</td><td>角度，处理 2π 周期性，避免 ±π 跳变。</td></tr>
+  <tr><td><code>SphereManifold&lt;k&gt;</code></td><td>k / k−1</td><td>k 维单位球面。</td></tr>
+  <tr><td><code>ProductManifold&lt;A, B, ...&gt;</code></td><td>拼接</td><td>把多个流形组合成一个（如位置+旋转）。</td></tr>
+</table>
+<div class="code"><div class="h"><span>位姿：3D 平移（欧氏）+ 四元数旋转（流形）</span><button class="copy">复制</button></div><pre><code>double pose[7];  // [x, y, z, qx, qy, qz, qw]
+problem.AddParameterBlock(pose, 7);
+problem.SetManifold(pose,
+    new ceres::ProductManifold&lt;
+        ceres::EuclideanManifold&lt;3&gt;,
+        ceres::EigenQuaternionManifold&gt;());</code></pre></div>
+
+<h3>6.2 Manifold 基类接口（自定义流形时实现）</h3>
+<div class="sig"><span class="kw">class</span> <span class="tp">Manifold</span> {
+ <span class="kw">virtual int</span>  <span class="fn">AmbientSize</span>() <span class="kw">const</span> = 0;   <span class="cm">// 参数在内存中的维度</span>
+ <span class="kw">virtual int</span>  <span class="fn">TangentSize</span>() <span class="kw">const</span> = 0;   <span class="cm">// 切空间（自由度）维度</span>
+ <span class="kw">virtual bool</span> <span class="fn">Plus</span>(<span class="kw">const double</span>* x, <span class="kw">const double</span>* delta, <span class="kw">double</span>* x_plus_delta) <span class="kw">const</span> = 0;
+ <span class="kw">virtual bool</span> <span class="fn">Minus</span>(<span class="kw">const double</span>* x, <span class="kw">const double</span>* y, <span class="kw">double</span>* delta) <span class="kw">const</span> = 0;
+ <span class="cm">// 还有 PlusJacobian / MinusJacobian 等，可用自动微分版基类简化</span>
+};</div>
+<p><code class="inline">Plus</code> 是关键：给定当前值 x 和切空间增量 delta，算出更新后的值并投影回流形。<code class="inline">AmbientSize</code> 与 <code class="inline">TangentSize</code> 不同的正是流形的意义——比如单位四元数用 4 个数存、只有 3 个自由度。</p>
+<div class="call tip"><b class="lbl">何时必须用</b><p>只要参数属于流形（单位四元数、旋转矩阵、单位向量、角度周期），就必须声明，否则优化过程中约束会被破坏，结果无物理意义。Ceres 官方强烈建议用 Manifold 而非旧的 LocalParameterization。</p></div>
+</section>
+
+<!-- ============ 07 Options ============ -->
+<section id="options"><h2><span class="num">07</span>Solver::Options：求解配置全解</h2>
+<p class="lead-p">这是旋钮最多的一个结构，按功能分组看就不乱了。<strong>绝大多数场景只改前两组就够了，其余保持默认。</strong></p>
+
+<h3>7.1 迭代与收敛控制（最常用）</h3>
+<table>
+  <tr><th>字段</th><th>默认</th><th>说明</th></tr>
+  <tr><td><code>max_num_iterations</code></td><td>50</td><td>最大迭代次数。到点就停，无论是否收敛。</td></tr>
+  <tr><td><code>max_solver_time_in_seconds</code></td><td>1e6</td><td>最长求解时间，超时停止。实时系统常设。</td></tr>
+  <tr><td><code>function_tolerance</code></td><td>1e-6</td><td>目标函数相对变化小于它就认为收敛。</td></tr>
+  <tr><td><code>gradient_tolerance</code></td><td>1e-10</td><td>梯度最大值小于它认为收敛。</td></tr>
+  <tr><td><code>parameter_tolerance</code></td><td>1e-8</td><td>参数相对变化太小认为收敛。</td></tr>
+  <tr><td><code>num_threads</code></td><td>1</td><td>线程数。大问题开多线程加速。</td></tr>
+</table>
+
+<h3>7.2 最小化器与信赖域</h3>
+<table>
+  <tr><th>字段</th><th>可选值 / 默认</th><th>说明</th></tr>
+  <tr><td><code>minimizer_type</code></td><td><code>TRUST_REGION</code>(默认)、<code>LINE_SEARCH</code></td><td>整体优化策略。</td></tr>
+  <tr><td><code>trust_region_strategy_type</code></td><td><code>LEVENBERG_MARQUARDT</code>(默认)、<code>DOGLEG</code></td><td>信赖域步长策略（LM 就是之前推导的那个）。</td></tr>
+  <tr><td><code>initial_trust_region_radius</code></td><td>1e4</td><td>初始信赖域半径。</td></tr>
+  <tr><td><code>max_trust_region_radius</code></td><td>1e16</td><td>最大半径。</td></tr>
+</table>
+
+<h3>7.3 线性求解器（按问题规模选）</h3>
+<p>这是影响性能最大的选择。<code class="inline">linear_solver_type</code> 的取值与适用场景（已对照官方 FAQ 核实）：</p>
+<table>
+  <tr><th>取值</th><th>适用场景</th></tr>
+  <tr><td><code>DENSE_QR</code>（默认）</td><td>小规模（几百个参数）或稠密问题。试手首选。</td></tr>
+  <tr><td><code>DENSE_NORMAL_CHOLESKY</code></td><td>小规模稠密，通常比 QR 快。</td></tr>
+  <tr><td><code>SPARSE_NORMAL_CHOLESKY</code></td><td>一般稀疏问题。需 SuiteSparse / CXSparse 等。</td></tr>
+  <tr><td><code>DENSE_SCHUR</code></td><td>Bundle Adjustment，约百台以内相机。</td></tr>
+  <tr><td><code>SPARSE_SCHUR</code></td><td>更大规模 BA，Schur 补稀疏时。</td></tr>
+  <tr><td><code>ITERATIVE_SCHUR</code></td><td>数千相机以上的大 BA，或没有稀疏 Cholesky 库时。</td></tr>
+  <tr><td><code>CGNR</code></td><td>共轭梯度，超大规模稀疏。</td></tr>
+</table>
+<div class="code"><div class="h"><span>典型配置</span><button class="copy">复制</button></div><pre><code>ceres::Solver::Options options;
+options.linear_solver_type = ceres::SPARSE_SCHUR;      // BA 问题
+options.preconditioner_type = ceres::SCHUR_JACOBI;    // ITERATIVE_SCHUR 时配预条件
+options.trust_region_strategy_type = ceres::LEVENBERG_MARQUARDT;
+options.max_num_iterations = 100;
+options.num_threads = 8;
+options.minimizer_progress_to_stdout = true;          // 打印每步日志</code></pre></div>
+<div class="call note"><b class="lbl">中小问题的性能开关</b><p>对中小规模问题，设 <code class="inline">options.use_explicit_schur_complement = true</code> 常能明显提速。没有稀疏 Cholesky 库时，<code class="inline">ITERATIVE_SCHUR</code> + <code class="inline">SCHUR_JACOBI</code> 预条件是很好的替代。</p></div>
+
+<h3>7.4 日志、调试与回调</h3>
+<table>
+  <tr><th>字段</th><th>说明</th></tr>
+  <tr><td><code>minimizer_progress_to_stdout</code></td><td>true 时每步打印 cost、梯度、步长、信赖域半径等。</td></tr>
+  <tr><td><code>logging_to_stdout</code></td><td>是否把 Ceres 的日志输出到 stdout。</td></tr>
+  <tr><td><code>check_gradients</code></td><td>true 时用数值微分校验解析/自动微分的雅可比，调试神器。</td></tr>
+  <tr><td><code>numeric_derivative_relative_step_size</code></td><td>梯度校验用的相对步长。</td></tr>
+  <tr><td><code>update_state_every_iteration</code></td><td>每步都更新参数值，配合 IterationCallback 观察中间状态。</td></tr>
+  <tr><td><code>callbacks</code></td><td>迭代回调，可在每步插入自定义逻辑（如记录轨迹、提前终止）。</td></tr>
+</table>
+<div class="call tip"><b class="lbl">调试导数正确性</b><p>怀疑自己雅可比写错时，打开 <code class="inline">options.check_gradients = true</code>，Ceres 会用数值微分逐项比对，误差大就会报警。这是排查"收敛异常"的第一招。</p></div>
+</section>
+
+<!-- ============ 08 Summary ============ -->
+<section id="summary"><h2><span class="num">08</span>Solver::Summary：读懂求解结果</h2>
+<p class="lead-p">求解完成后，Summary 告诉你"到底成没成功、花了多久、卡在哪"。诊断问题第一时间看它。</p>
+
+<h3>8.1 两个报告函数</h3>
+<div class="sig">std::string <span class="fn">BriefReport</span>() <span class="kw">const</span>;  <span class="cm">// 一行摘要</span>
+std::string <span class="fn">FullReport</span>()  <span class="kw">const</span>;  <span class="cm">// 完整报告：各阶段耗时、迭代表</span></div>
+<div class="code"><div class="h"><span>输出报告</span><button class="copy">复制</button></div><pre><code>ceres::Solve(options, &amp;problem, &amp;summary);
+std::cout &lt;&lt; summary.BriefReport() &lt;&lt; "\n";
+std::cout &lt;&lt; summary.FullReport()  &lt;&lt; "\n";</code></pre></div>
+
+<h3>8.2 常用字段</h3>
+<table>
+  <tr><th>字段</th><th>说明</th></tr>
+  <tr><td><code>IsSolutionUsable()</code></td><td><strong>最重要</strong>：解是否可用。求解后先判断它，再看具体数值。</td></tr>
+  <tr><td><code>termination_type</code></td><td>终止原因枚举，见下表。</td></tr>
+  <tr><td><code>initial_cost</code> / <code>final_cost</code></td><td>初始 / 最终目标函数值。final 明显下降才说明优化有效。</td></tr>
+  <tr><td><code>num_iterations</code></td><td>实际迭代次数。</td></tr>
+  <tr><td><code>num_successful_steps</code> / <code>num_unsuccessful_steps</code></td><td>成功 / 失败的迭代步数，失败多说明信赖域太激进。</td></tr>
+  <tr><td><code>total_time_in_seconds</code></td><td>总耗时。另有 <code>solver_time</code>、<code>evaluation_time</code>、<code>linear_solver_time</code> 分项。</td></tr>
+</table>
+<p><code class="inline">termination_type</code> 的取值：</p>
+<table>
+  <tr><th>枚举</th><th>含义</th></tr>
+  <tr><td><code>CONVERGENCE</code></td><td>正常收敛，最理想。</td></tr>
+  <tr><td><code>NO_CONVERGENCE</code></td><td>达到迭代/时间上限但未收敛，可能需要放宽上限或调初值。</td></tr>
+  <tr><td><code>FAILURE</code></td><td>求解失败（数值问题等），要查模型和初值。</td></tr>
+  <tr><td><code>USER_SUCCESS</code></td><td>用户回调主动成功终止。</td></tr>
+  <tr><td><code>DID_NOT_RUN</code></td><td>求解器根本没运行（问题为空等）。</td></tr>
+</table>
+<div class="code"><div class="h"><span>规范的求解后检查</span><button class="copy">复制</button></div><pre><code>if (!summary.IsSolutionUsable()) {
+  std::cerr &lt;&lt; "求解失败：\n" &lt;&lt; summary.FullReport();
+  return -1;
+}
+std::cout &lt;&lt; "cost: " &lt;&lt; summary.initial_cost
+          &lt;&lt; " -> " &lt;&lt; summary.final_cost &lt;&lt; "\n"
+          &lt;&lt; summary.BriefReport() &lt;&lt; std::endl;</code></pre></div>
+<div class="call tip"><b class="lbl">性能诊断起点</b><p>官方明确建议：排查 Ceres 的运行速度和收敛问题时，第一步就是看 <code class="inline">Summary::FullReport()</code> 的输出——它列出了每一迭代的 cost 变化、梯度范数、步长、信赖域比值和各阶段耗时，能快速定位瓶颈。</p></div>
+</section>
+
+<!-- ============ 09 综合示例 ============ -->
+<section id="full-example"><h2><span class="num">09</span>综合示例：把 API 串成一个完整程序</h2>
+<p class="lead-p">下面是一个曲线拟合 <code class="inline">y = e^(mx+c)</code> 的完整可编译程序，把前面所有核心 API 都用上了——自动微分代价函数、Problem 建模、Solver 配置、Summary 诊断。可以直接拿去编译运行。</p>
+<div class="code"><div class="h"><span>curve_fit.cc · 完整可运行</span><button class="copy">复制</button></div><pre><code>#include "ceres/ceres.h"
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+
+// 1) 定义自动微分代价函数：残差 = 预测值 - 观测值
+struct ExponentialResidual {
+  ExponentialResidual(double x, double y) : x_(x), y_(y) {}
+  template &lt;typename T&gt;
+  bool operator()(const T* const m, const T* const c, T* residual) const {
+    residual[0] = ceres::exp((*m) * T(x_) + (*c)) - T(y_);
+    return true;
+  }
+ private:
+  const double x_, y_;
+};
+
+int main() {
+  // 观测数据 (x, y)
+  const double data[] = {0,1.1, 1,1.7, 2,2.0, 3,2.6, 4,3.2, 5,3.5};
+
+  // 2) 参数初值
+  double m = 0.3, c = 0.0;
+
+  // 3) 构建 Problem：每个观测点加一个残差块，共享参数 m、c
+  ceres::Problem problem;
+  for (int i = 0; i &lt; 12; i += 2) {
+    ceres::CostFunction* cost =
+        new ceres::AutoDiffCostFunction&lt;ExponentialResidual, 1, 1, 1&gt;(
+            new ExponentialResidual(data[i], data[i+1]));
+    problem.AddResidualBlock(cost, nullptr, &amp;m, &amp;c);  // nullptr=普通平方损失
+  }
+
+  // 4) 配置求解器
+  ceres::Solver::Options options;
+  options.linear_solver_type = ceres::DENSE_QR;
+  options.minimizer_progress_to_stdout = true;
+  options.max_num_iterations = 100;
+
+  // 5) 求解
+  ceres::Solver::Summary summary;
+  ceres::Solve(options, &amp;problem, &amp;summary);
+
+  // 6) 检查结果、输出
+  std::cout &lt;&lt; summary.BriefReport() &lt;&lt; std::endl;
+  if (summary.IsSolutionUsable())
+    std::cout &lt;&lt; "m = " &lt;&lt; m &lt;&lt; ", c = " &lt;&lt; c &lt;&lt; std::endl;
+  return 0;
+}</code></pre></div>
+<div class="call"><b class="lbl">逐段对应</b><p><b>①</b> 就是第 04 章的 AutoDiffCostFunction：模板 <code class="inline">operator()</code> + <code class="inline">T(…)</code> / <code class="inline">ceres::exp</code>。<b>②</b> 参数初值给个合理猜测。<b>③</b> 第 03 章的 AddResidualBlock，每个点一个残差、共享 m 和 c。<b>④</b> 第 07 章 Options，小规模用 DENSE_QR。<b>⑤⑥</b> 第 02 章 Solve + 第 08 章 Summary。<strong>任何 Ceres 程序都是这 6 步的排列组合。</strong></p></div>
+</section>
+
+<!-- ============ 10 速查表 ============ -->
+<section id="cheatsheet"><h2><span class="num">10</span>速查表与常见踩坑</h2>
+
+<h3>10.1 一页速查</h3>
+<table>
+  <tr><th>我想做的事</th><th>用这个 API</th></tr>
+  <tr><td>加一个误差项</td><td><code>problem.AddResidualBlock(cost, loss, &amp;params...)</code></td></tr>
+  <tr><td>固定某个参数</td><td><code>problem.SetParameterBlockConstant(&amp;x)</code></td></tr>
+  <tr><td>限制参数范围</td><td><code>SetParameterLowerBound / UpperBound</code></td></tr>
+  <tr><td>约束单位四元数/角度</td><td><code>problem.SetManifold(&amp;q, new EigenQuaternionManifold)</code></td></tr>
+  <tr><td>抗离群点</td><td><code>AddResidualBlock(cost, new CauchyLoss(a), ...)</code></td></tr>
+  <tr><td>写残差最省事</td><td><code>AutoDiffCostFunction&lt;Functor, 残差维, 参数维...&gt;</code></td></tr>
+  <tr><td>求解</td><td><code>ceres::Solve(options, &amp;problem, &amp;summary)</code></td></tr>
+  <tr><td>看是否成功</td><td><code>summary.IsSolutionUsable()</code> + <code>BriefReport()</code></td></tr>
+  <tr><td>BA / SLAM 加速</td><td><code>options.linear_solver_type = SPARSE_SCHUR</code></td></tr>
+  <tr><td>检查导数是否写错</td><td><code>options.check_gradients = true</code></td></tr>
+</table>
+
+<h3>10.2 新手高频错误</h3>
+<div class="gridcards">
+  <div class="gcard"><span class="tag">编译</span><h4>找不到 Ceres 头文件</h4><p>CMake 里漏了 <code>find_package(Ceres REQUIRED)</code> 或没有 <code>target_link_libraries(... ${CERES_LIBRARIES})</code>。</p></div>
+  <div class="gcard"><span class="tag">编译</span><h4>C++ 标准太低</h4><p>Ceres 2.x 需要 C++14 及以上。CMake 里设 <code>set(CMAKE_CXX_STANDARD 14)</code>。</p></div>
+  <div class="gcard"><span class="tag">自动微分</span><h4>常量没写 T(...)</h4><p><code>T(10.0) - x[0]</code> 写成 <code>10.0 - x[0]</code>，Jet 运算失效。</p></div>
+  <div class="gcard"><span class="tag">自动微分</span><h4>用错数学函数</h4><p>对 Jet 用 <code>std::sin</code> 会编译失败，要用 <code>ceres::sin</code>。</p></div>
+  <div class="gcard"><span class="tag">建模</span><h4>传值不传地址</h4><p><code>AddResidualBlock(..., x)</code> 传的是值副本，求解器改不到原变量。必须 <code>&amp;x</code>。</p></div>
+  <div class="gcard"><span class="tag">初始化</span><h4>初值太离谱不收敛</h4><p>非线性优化依赖初值。给个合理初值，或用多初值重试。看 Summary 诊断。</p></div>
+  <div class="gcard"><span class="tag">维度</span><h4>模板尺寸写错</h4><p><code>AutoDiffCostFunction&lt;F, 2, 9, 3&gt;</code> 三个数依次是残差维、各参数块维，写错直接崩溃。</p></div>
+  <div class="gcard"><span class="tag">流形</span><h4>四元数内存布局</h4><p>Eigen 是 [x,y,z,w]（实部最后），构造函数是 (w,x,y,z)，Ceres 操作裸指针时极易搞混。</p></div>
+</div>
+
+<h3>10.3 版本提示</h3>
+<div class="call warn"><b class="lbl">LocalParameterization 已弃用</b><p>Ceres 2.2.0 起，<code class="inline">LocalParameterization</code>、<code class="inline">SetParameterization()</code> 被弃用，改用 <code class="inline">Manifold</code> / <code class="inline">SetManifold()</code>。老项目代码里若看到前者，就是旧版写法。内置类也相应从 <code class="inline">QuaternionParameterization</code> 变为 <code class="inline">EigenQuaternionManifold</code>。</p></div>
+
+<div class="call tip"><b class="lbl">继续深入</b><p>想看每个类的完整成员与方法签名，查阅 <a href="https://ceres-solver.org/nnls_api.html" target="_blank">官方 API 文档</a> 和各头文件（<code class="inline">ceres/problem.h</code>、<code class="inline">ceres/cost_function.h</code>、<code class="inline">ceres/solver.h</code> 等）。返回<a href="index.html">学习中心首页</a>继续其他阶段。</p></div>
+</section>
+
+<div class="navbot">
+  <a href="stage5.html"><span class="lbl">← 上一页</span><span class="ttl">阶段 5 · 进阶实战</span></a>
+  <div class="sp"></div>
+  <a class="r" href="index.html"><span class="lbl">返回</span><span class="ttl">学习中心首页 →</span></a>
+</div>
+
+  </article>
+</div></div>
+
+<script>
+(function(){
+  var nav=[].slice.call(document.querySelectorAll('aside a'));
+  var secs=nav.map(function(a){return document.querySelector(a.getAttribute('href'))});
+  function onScroll(){var k=0;for(var i=0;i<secs.length;i++){if(secs[i]&&secs[i].getBoundingClientRect().top<=120)k=i}nav.forEach(function(a,i){a.classList.toggle('active',i===k)})}
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function hi(c){
+    var re=/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(struct|class|template|typename|const|constexpr|double|float|int|bool|void|return|true|false|virtual|public|private|new|delete|nullptr|NULL|static|for|if|else|while|using|namespace|explicit|auto|operator)\b|\b(AutoDiffCostFunction|NumericDiffCostFunction|DynamicAutoDiffCostFunction|CostFunction|SizedCostFunction|Problem|Solver|Summary|Options|Solve|AddResidualBlock|AddParameterBlock|SetManifold|SetParameterBlockConstant|HuberLoss|CauchyLoss|ScaledLoss|TrivialLoss|SoftLOneLoss|EigenQuaternionManifold|AngleManifold|SphereManifold|ProductManifold|AngleAxisRotatePoint|BriefReport|FullReport|Evaluate|ceres|Eigen|std|cout|endl|nullptr)\b|\b(\d+\.?\d*(?:e[+-]?\d+)?)\b/g;
+    var o='',l=0,m;
+    while((m=re.exec(c))!==null){o+=esc(c.slice(l,m.index));var cl=m[1]?'cm':m[2]?'st':m[3]?'kw':m[4]?'fn':'nm';o+='<span class="'+cl+'">'+esc(m[0])+'</span>';l=m.index+m[0].length}
+    o+=esc(c.slice(l));return o;
+  }
+  document.querySelectorAll('.code pre code').forEach(function(e){if(e.textContent.indexOf('<span')<0)e.innerHTML=hi(e.textContent)});
+  function copyText(text){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      return navigator.clipboard.writeText(text);
+    }
+    // 降级：file:// 或旧浏览器下 clipboard 不可用
+    var ta=document.createElement('textarea');ta.value=text;
+    ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy')}catch(e){}
+    document.body.removeChild(ta);
+    return Promise.resolve();
+  }
+  document.querySelectorAll('.code .copy').forEach(function(b){b.addEventListener('click',function(){var c=b.parentNode.parentNode.querySelector('pre code').textContent;copyText(c).then(function(){var o=b.textContent;b.textContent='已复制';setTimeout(function(){b.textContent=o},1400)})})});
+})();
+</script>
+
+</body>
+</html>
