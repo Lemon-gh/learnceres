@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段 2 · Ceres 学习路线</title>
+<style>
+  :root{
+    --bg:#ffffff;--page:#f6f8fa;--surface:#ffffff;--text:#1f2328;--muted:#57606a;--hint:#8b949e;
+    --border:#d8dee4;--soft:#eaeef2;--blue:#185fa5;--deep:#0c447c;--bluebg:#e6f1fb;--blueln:#cfe3f7;
+    --teal:#0f6e56;--tealbg:#e1f5ee;--tealln:#bfe6d8;--amber:#854f0b;--amberbg:#faf0da;
+    --purple:#534ab7;--purplebg:#eeedfe;--coral:#993c1d;--coralbg:#faece7;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--page);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.75}
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .tbin{max-width:1080px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:600;color:var(--deep);font-size:14px;white-space:nowrap}
+  .logo .mark{width:26px;height:26px;border-radius:7px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px}
+  .progress{display:flex;align-items:center;gap:0;flex:1;justify-content:center;flex-wrap:wrap}
+  .pnode{display:flex;align-items:center;gap:0}
+  .pdot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-family:var(--mono);font-weight:600;background:var(--soft);color:var(--hint);border:1.5px solid transparent;flex:0 0 auto}
+  .pdot.done{background:var(--teal-bg);color:var(--teal)}
+  .pdot.cur{background:var(--blue);color:#fff;box-shadow:0 0 0 3px var(--blue-bg)}
+  .pbar{width:34px;height:2px;background:var(--border);margin:0 3px}
+  .pbar.done{background:var(--teal)}
+  .homebtn{font-size:13px;color:var(--muted);white-space:nowrap}
+  .stagehero{background:var(--surface);border-bottom:1px solid var(--border)}
+  .stagehero .hin{max-width:1080px;margin:0 auto;padding:40px 24px 34px}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.04em;padding:4px 12px;border-radius:99px;margin-bottom:14px}
+  .kicker .sn{font-family:var(--mono)}
+  .stagehero h1{font-size:34px;line-height:1.25;margin:0 0 10px;color:var(--deep);letter-spacing:-.02em}
+  .stagehero .lead{font-size:16.5px;color:var(--muted);margin:0;max-width:760px;line-height:1.7}
+  .goal{margin-top:22px;border-radius:12px;padding:16px 20px;border:1px solid var(--teal-line);background:var(--teal-bg)}
+  .goal b{display:block;color:#085041;font-size:13px;margin-bottom:6px}
+  .goal ul{margin:0;padding-left:20px;font-size:14px;color:#0b5846}
+  .goal li{margin:3px 0}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 0}
+  .grid{display:grid;grid-template-columns:210px 1fr;gap:36px}
+  aside{position:sticky;top:64px;align-self:start;height:calc(100vh - 80px);overflow:auto;padding:28px 0 40px}
+  aside .ttl{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--hint);padding:0 12px 8px}
+  aside a{display:block;font-size:13px;color:var(--muted);padding:7px 12px;border-left:2px solid transparent;border-radius:0 6px 6px 0}
+  aside a:hover{background:var(--blue-bg);color:var(--deep);text-decoration:none}
+  aside a.active{background:var(--blue-bg);color:var(--deep);border-left-color:var(--blue);font-weight:600}
+  article{min-width:0;padding:28px 0 40px}
+  section{scroll-margin-top:80px;margin-bottom:44px}
+  h2{font-size:23px;color:var(--deep);margin:0 0 14px;padding-bottom:9px;border-bottom:2px solid var(--blue-bg);letter-spacing:-.01em}
+  h2 .num{color:var(--blue);font-family:var(--mono);font-size:17px;margin-right:9px}
+  h3{font-size:17px;margin:24px 0 9px}
+  p{margin:10px 0}
+  ul,ol{margin:10px 0;padding-left:24px}
+  li{margin:5px 0}
+  strong{color:var(--deep)}
+  code.inline{font-family:var(--mono);font-size:.88em;background:var(--page);border:1px solid var(--soft);border-radius:5px;padding:1px 6px;color:var(--coral)}
+  .call{border-left:4px solid var(--blue);background:var(--blue-bg);border-radius:0 9px 9px 0;padding:13px 18px;margin:16px 0;font-size:14px}
+  .call b.lbl{display:block;margin-bottom:4px}
+  .call p{margin:4px 0}
+  .call.tip{border-color:var(--teal);background:var(--teal-bg)}
+  .call.warn{border-color:var(--amber);background:var(--amber-bg)}
+  .call.note{border-color:var(--purple);background:var(--purple-bg)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:13px;margin:16px 0}
+  .card{border:1px solid var(--border);border-radius:11px;padding:17px;background:var(--surface)}
+  .card h4{margin:0 0 7px;font-size:15px;color:var(--deep)}
+  .card p{margin:0;font-size:13.3px;color:var(--muted);line-height:1.6}
+  .card .tag{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--page);border:1px solid var(--soft);border-radius:4px;padding:1px 7px;margin-bottom:9px;color:var(--teal)}
+  .code{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:15px 0;background:var(--page)}
+  .code .h{background:#eef1f4;border-bottom:1px solid var(--border);padding:6px 14px;font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:space-between}
+  .code .copy{cursor:pointer;border:1px solid var(--border);background:var(--surface);border-radius:5px;padding:2px 10px;font-size:11.5px;color:var(--muted);font-family:var(--sans)}
+  .code .copy:hover{color:var(--blue);border-color:var(--blue)}
+  .code pre{margin:0;padding:15px 17px;overflow:auto;font-family:var(--mono);font-size:12.8px;line-height:1.65;color:var(--text)}
+  .kw{color:#a626a4}.fn{color:#075db0}.cm{color:#8b949e;font-style:italic}.st{color:#c9502b}.nm{color:#986801}
+  .out{background:#0d1117;color:#c9d1d9;border-radius:10px;padding:14px 17px;font-family:var(--mono);font-size:12.3px;line-height:1.6;overflow:auto;margin:14px 0}
+  .out .g{color:#7ee787}.out .d{color:#8b949e}
+  table{width:100%;border-collapse:collapse;margin:15px 0;font-size:13.8px}
+  th,td{border:1px solid var(--border);padding:8px 11px;text-align:left;vertical-align:top}
+  th{background:var(--page);color:var(--deep);font-weight:600}
+  td code{font-family:var(--mono);font-size:12.3px;color:var(--coral)}
+  .formula{background:var(--page);border:1px solid var(--soft);border-radius:10px;padding:14px 18px;margin:15px 0;font-family:var(--mono);font-size:13.8px;color:var(--deep);text-align:center;line-height:1.9;overflow:auto}
+  .steps{counter-reset:st;margin:16px 0}
+  .step{position:relative;padding-left:42px;margin:13px 0}
+  .step:before{counter-increment:st;content:counter(st);position:absolute;left:0;top:1px;width:28px;height:28px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;font-family:var(--mono)}
+  .step h4{margin:1px 0 4px;font-size:14.5px;color:var(--deep)}
+  .step p{margin:0;font-size:13.8px;color:var(--muted)}
+  details{border:1px solid var(--border);border-radius:9px;padding:11px 16px;margin:12px 0;background:var(--surface)}
+  summary{cursor:pointer;color:var(--deep);font-weight:600;font-size:14px}
+  .lsdemo{margin:16px 0;border:1px solid var(--border);border-radius:11px;padding:15px 17px;background:var(--surface)}
+  .lsdemo .legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:8px;font-size:12px;color:var(--muted)}
+  .lsdemo .legend span{display:flex;align-items:center;gap:5px}
+  .lsdemo svg{width:100%;height:auto;display:block}
+  .lsdemo .ctrl{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin:12px 0 6px}
+  .lsdemo .ctrl label{font-size:13px;display:flex;align-items:center;gap:8px}
+  .lsdemo .ctrl input[type=range]{width:150px}
+  .lsdemo .val{font-family:var(--mono);min-width:38px;color:var(--deep)}
+  .lsdemo .readout{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px}
+  .lsdemo .cost{background:var(--page);border-radius:8px;padding:8px 16px}
+  .lsdemo .cost .lab{font-size:12px;color:var(--muted)}
+  .lsdemo .cost .num{font-size:22px;font-weight:600;font-family:var(--mono);color:var(--deep)}
+  .lsdemo button{cursor:pointer;border:1px solid var(--border);background:var(--surface);border-radius:6px;padding:5px 12px;font-size:13px;color:var(--blue)}
+  .lsdemo button:hover{border-color:var(--blue)}
+  .lsdemo .hint{font-size:12px;color:var(--hint)}
+  .navbot{display:flex;gap:16px;justify-content:space-between;margin-top:46px;padding-top:22px;border-top:1px solid var(--border)}
+  .navbot a{flex:1;border:1px solid var(--border);border-radius:11px;padding:14px 18px;background:var(--surface)}
+  .navbot a:hover{border-color:var(--blue);text-decoration:none;transform:translateY(-1px)}
+  .navbot .lbl{font-size:12px;color:var(--hint)}
+  .navbot .ttl{font-size:15px;font-weight:600;color:var(--deep);display:block;margin-top:2px}
+  .navbot .r{text-align:right}
+  .navbot .sp{flex:0 0 120px}
+
+  /* ===== 原理深挖 ===== */
+  .deep-hd{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:#534ab7;background:#eeedfe;border:1px solid #cecbf6;border-radius:99px;padding:3px 11px;margin:0 0 8px}
+  .derive{border:1px solid var(--border);border-radius:11px;background:var(--surface);padding:15px 18px;margin:14px 0}
+  .derive h3{margin:0 0 9px;font-size:15.5px;color:var(--deep)}
+  .derive .eq{font-family:var(--mono);font-size:13.4px;line-height:2.05;color:var(--deep);background:var(--page);border:1px solid var(--soft);border-radius:8px;padding:10px 14px;margin:8px 0;overflow:auto;white-space:nowrap}
+  .derive .eq .em{color:var(--coral);font-weight:600}
+  .derive .eq .tl{color:var(--teal);font-weight:600}
+  .derive p{font-size:13.5px;color:var(--muted);margin:7px 0}
+  .derive p b{color:var(--deep)}
+  .animb{border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:15px 17px;margin:15px 0}
+  .animb .cap{font-size:12px;font-weight:600;color:var(--teal);letter-spacing:.03em;margin-bottom:9px}
+  .animb svg{width:100%;height:auto;display:block;background:var(--page);border:1px solid var(--soft);border-radius:9px}
+  .animb .ctl{display:flex;flex-wrap:wrap;gap:11px;align-items:center;margin-top:11px}
+  .animb button{cursor:pointer;border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:6px;padding:5px 13px;font-size:12.5px}
+  .animb button.gh{background:var(--surface);color:var(--blue)}
+  .animb button:hover{filter:brightness(.94)}
+  .animb label{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .animb input[type=range]{width:138px}
+  .animb .ro{font-family:var(--mono);font-size:12.4px;color:var(--deep);background:var(--page);border:1px solid var(--soft);border-radius:6px;padding:5px 10px;margin-top:10px;display:inline-block;line-height:1.8}
+  .animb .ro b{color:var(--coral)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:860px){.two{grid-template-columns:1fr}}
+
+  @media(max-width:860px){.grid{grid-template-columns:1fr}aside{display:none}.stagehero h1{font-size:27px}.progress{display:none}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="tbin">
+  <div class="logo"><span class="mark">C</span> Ceres 学习路线</div>
+  <div class="progress"><a class="pdot done" href="stage1.html" title="阶段1：打基础">1</a><div class="pbar"></div><a class="pdot cur" href="stage2.html" title="阶段2：跑通第一个例子">2</a><div class="pbar"></div><a class="pdot " href="stage3.html" title="阶段3：吃透核心骨架">3</a><div class="pbar"></div><a class="pdot " href="stage4.html" title="阶段4：动手练习">4</a><div class="pbar"></div><a class="pdot " href="stage5.html" title="阶段5：进阶实战">5</a></div>
+  <a class="homebtn" href="index.html">首页</a>
+</div></div>
+<div class="stagehero"><div class="hin">
+  <span class="kicker" style="color:#185fa5;background:#e6f1fb;border:1px solid #cfe3f7"><span class="sn">阶段 2 / 5</span></span>
+  <h1>跑通第一个例子</h1>
+  <p class="lead">目标只有一个：让 Hello World 在你机器上真的跑起来，看到 x 从 0.5 变成 10。先建立“它能干活”的直觉，别纠结每行代码。</p>
+  <div class="goal"><b>这一阶段结束后，你将能够</b><ul><li>在本机装好 Ceres 与编译工具</li><li>照着模板编译并运行 Hello World</li><li>看到 cost 一路降到接近 0</li><li>遇到报错知道去哪查</li></ul></div>
+</div></div>
+<div class="grid">
+  <aside><div class="ttl">本页目录</div><a href="#m1">安装环境</a><a href="#m2">写代码</a><a href="#m3">编译运行</a><a href="#m4">看懂输出</a><a href="#m5">常见错误</a><a href="#deep">原理深挖</a></aside>
+  <article>
+<section id="m1"><h2><span class="num">01</span>安装环境</h2>
+<p>Ceres 依赖 Eigen、glog，新版本还依赖 Abseil。最省事的是用包管理器一键安装。</p>
+<h3>Ubuntu / Debian</h3>
+<div class="code"><div class="h"><span>终端</span><button class="copy">复制</button></div><pre><code>sudo apt update
+sudo apt install -y cmake g++ libceres-dev
+# 顺带装 glog、eigen（多数情况 libceres-dev 会带依赖）
+sudo apt install -y libgoogle-glog-dev libeigen3-dev</code></pre></div>
+<h3>Windows（推荐 vcpkg）</h3>
+<div class="code"><div class="h"><span>PowerShell</span><button class="copy">复制</button></div><pre><code>git clone https://github.com/microsoft/vcpkg
+.\vcpkg\bootstrap-vcpkg.bat
+.\vcpkg\vcpkg install ceres:x64-windows
+# CMake 时加参数：-DCMAKE_TOOLCHAIN_FILE=.../vcpkg.cmake</code></pre></div>
+<h3>conda（跨平台，最省心）</h3>
+<div class="code"><div class="h"><span>终端</span><button class="copy">复制</button></div><pre><code>conda install -c conda-forge ceres-solver
+conda install -c conda-forge cmake cxx-compiler</code></pre></div>
+<div class="call tip"><b class="lbl">验证安装</b><p>能找到 <code class="inline">CeresConfig.cmake</code> 就说明装好了。它在 <code class="inline">/usr/lib/cmake/Ceres</code>（Linux）或 vcpkg 的 <code class="inline">share/ceres</code> 下。</p></div></section>
+
+<section id="m2"><h2><span class="num">02</span>写代码</h2>
+<p>建一个目录，放入两个文件。完整代码来自官方教程：</p>
+<div class="code"><div class="h"><span>main.cc · 求 ½(10−x)² 的最小值</span><button class="copy">复制</button></div><pre><code>#include "ceres/ceres.h"        // Ceres 核心头文件
+#include <iostream>
+
+struct CostFunctor {            // 代价函数：残差怎么算
+  template &lt;typename T&gt;        // 模板：支持自动微分
+  bool operator()(const T* const x, T* residual) const {
+    residual[0] = T(10.0) - x[0];
+    return true;
+  }
+};
+
+int main() {
+  double x = 0.5;               // 待求参数 + 初值
+
+  ceres::Problem problem;
+  problem.AddResidualBlock(
+      new ceres::AutoDiffCostFunction&lt;CostFunctor, 1, 1&gt;(),
+      nullptr, &amp;x);             // nullptr = 普通平方损失；&amp;x 传地址
+
+  ceres::Solver::Options options;
+  options.minimizer_progress_to_stdout = true;
+  ceres::Solver::Summary summary;
+  ceres::Solve(options, &amp;problem, &amp;summary);
+
+  std::cout &lt;&lt; "x : 0.5 -&gt; " &lt;&lt; x &lt;&lt; "\n";
+  return 0;
+}</code></pre></div>
+<div class="code"><div class="h"><span>CMakeLists.txt</span><button class="copy">复制</button></div><pre><code>cmake_minimum_required(VERSION 3.10)
+project(hello_ceres)
+set(CMAKE_CXX_STANDARD 14)
+find_package(Ceres REQUIRED)
+include_directories(${CERES_INCLUDE_DIRS})
+add_executable(hello main.cc)
+target_link_libraries(hello ${CERES_LIBRARIES})</code></pre></div></section>
+
+<section id="m3"><h2><span class="num">03</span>编译运行</h2>
+<div class="out">mkdir build &amp;&amp; cd build
+cmake ..
+make -j
+./hello</div>
+<p>Linux/macOS 上 <code class="inline">make</code> 可用 <code class="inline">ninja</code> 替代（cmake 时加 <code class="inline">-G Ninja</code>）；Windows + vcpkg 用 Visual Studio 生成器即可。</p></section>
+
+<section id="m4"><h2><span class="num">04</span>看懂输出</h2>
+<div class="out"><span class="d">iter      cost      cost_change  |gradient|   |step|</span>
+   0  4.512500e+01    0.00e+00    9.50e+00   0.00e+00
+   1  4.511598e-07    4.51e+01    9.50e-04   9.50e+00
+   2  5.012552e-16    4.51e-07    3.17e-08   9.50e-04
+<span class="g">Ceres Solver Report: Iterations: 2, Final cost: 5.012552e-16,
+Termination: CONVERGENCE
+x : 0.5 -> 10</span></div>
+<div class="cards">
+  <div class="card"><span class="tag">cost</span><h4>目标函数值</h4><p>从 45 一路降到 5e-16，越接近 0 说明拟合越好。</p></div>
+  <div class="card"><span class="tag">|gradient|</span><h4>梯度模长</h4><p>趋近 0 表示到了极值点，收敛判据之一。</p></div>
+  <div class="card"><span class="tag">tr_ratio</span><h4>信赖域比</h4><p>接近 1 说明这步走得好，求解器信任当前模型。</p></div>
+</div>
+<div class="call tip"><b class="lbl">恭喜</b><p>看到 <code class="inline">x : 0.5 -> 10</code> 就完成了最难的心理门槛。剩下的工作都是把这段骨架里的残差公式换掉。</p></div></section>
+
+<section id="m5"><h2><span class="num">05</span>常见错误排查</h2>
+<table>
+  <tr><th>报错现象</th><th>原因</th><th>怎么解决</th></tr>
+  <tr><td>Could NOT find Ceres</td><td>没装或 CMake 找不到</td><td>安装 libceres-dev；或 <code>-DCeres_DIR=路径</code> 指到 CeresConfig.cmake 所在目录</td></tr>
+  <tr><td>fatal error: ceres/ceres.h not found</td><td>头文件路径没包含</td><td>确认 <code>include_directories(${CERES_INCLUDE_DIRS})</code></td></tr>
+  <tr><td>undefined reference to ceres::...</td><td>没链接库</td><td>确认 <code>target_link_libraries</code> 写了 <code>${CERES_LIBRARIES}</code></td></tr>
+  <tr><td>编译报模板相关错误</td><td>残差里用了 std 数学函数</td><td>对 Jet 用 <code>ceres::sin/cos/exp</code> 等，或确保常量写成 <code>T(10.0)</code></td></tr>
+</table></section>
+
+
+<section id="deep"><h2><span class="num">06</span>原理深挖：求解器内部怎么迭代</h2>
+<span class="deep-hd">MATH + ANIMATION</span>
+<p>Hello World 里 <code class="inline">Solve()</code> 一瞬间就把 x 从 0.5 变成 10。它内部并非沿梯度慢慢挪，而是用一套更聪明的办法。这章把它拆开看。</p>
+<div class="derive">
+  <h3>① 一阶近似：把非线性问题局部拉直</h3>
+  <p>在当前点 x 附近，残差函数 r(x) 可以用一阶泰勒展开近似：<b>r(x+Δx) ≈ r(x) + J·Δx</b>，其中 J = ∂r/∂x 就是<b>雅可比</b>。于是最小化 ‖r+JΔx‖² 变成一个二次函数最小化问题。</p>
+  <h3>② 高斯-牛顿：解出最优步长</h3>
+  <div class="eq">对 ‖r+JΔx‖² 求 Δx 的导并令零 → <span class="em">(JᵀJ) Δx = −Jᵀ r</span>
+解线性方程得步长：<span class="tl">Δx = −(JᵀJ)⁻¹ Jᵀ r</span></div>
+  <p>对比阶段 1 的梯度下降 <code class="inline">Δx = −α∇cost</code>（∇cost = Jᵀr）：高斯-牛顿多了个 <code class="inline">(JᵀJ)⁻¹</code>，相当于自动为每步调整了步长和方向——所以收敛快得多。</p>
+  <h3>③ Levenberg-Marquardt：给高斯-牛顿加个"保险"</h3>
+  <p>当 JᵀJ 接近奇异（病态）时，高斯-牛顿的步长会爆炸。LM 加一个阻尼项 μ：</p>
+  <div class="eq"><span class="em">(JᵀJ + μI) Δx = −Jᵀ r</span>
+&nbsp; μ 很小 → 接近高斯-牛顿（快）&nbsp;|&nbsp; μ 很大 → 接近梯度下降（稳）</div>
+  <p>Ceres 默认就用 LM。它会根据这一步"实际下降量 vs 预测下降量"自动调 μ：走得好就减小 μ（更大胆），走得差就增大 μ（更保守）。这就是<b>信赖域</b>思想。</p>
+</div>
+<div class="animb" id="lmBox">
+  <div class="cap">动画演示 · 阻尼 μ 如何改变每一步</div>
+  <p style="font-size:13px;color:var(--muted);margin:0 0 10px">目标函数 f(x)=½(10−x)²（即 Hello World）。紫点是高斯-牛顿路径，橙点是固定步长的朴素梯度下降。拖动 μ 看高斯-牛顿那一步被"压缩"到什么程度：μ=0 时一步到 10，μ 越大步子越小越稳。</p>
+  <svg id="lmSvg" viewBox="0 0 680 300" role="img" aria-label="LM 阻尼迭代动画">
+    <g id="lmGrid"></g>
+    <path id="lmCurve" fill="none" stroke="#8b949e" stroke-width="2"/>
+    <g id="lmStepLine"></g>
+    <circle id="lmGN" r="7" fill="#534ab7" stroke="#fff" stroke-width="2"/>
+    <circle id="lmGD" r="7" fill="#ba7517" stroke="#fff" stroke-width="2"/>
+    <circle id="lmGoal" r="5" fill="#0f6e56"/>
+    <text x="360" y="292" text-anchor="middle" font-size="12" fill="#57606a">x</text>
+  </svg>
+  <div class="ctl">
+    <button id="lmStep">走一步</button>
+    <button id="lmAuto">▶ 自动</button>
+    <button id="lmReset" class="gh">重置</button>
+    <label>阻尼 μ <input id="lmMu" type="range" min="0" max="60" value="10"><span id="lmMuv" class="ro" style="margin:0;padding:2px 7px">μ=10</span></label>
+  </div>
+  <div class="ro" id="lmRo">紫(高斯-牛顿+μ) x=<b id="lmGX">0.50</b> &nbsp; 橙(梯度下降) x=<b id="lmDX">0.50</b> &nbsp;|&nbsp; 目标 x=10</div>
+</div>
+<div class="call note"><b class="lbl">为什么默认选 LM</b><p>它兼具高斯-牛顿的快和梯度下降的稳：初值离得远时用大 μ 小步探路，接近最优时减小 μ 快速收敛。Ceres 的 <code class="inline">Solver::Options::initial_trust_region_radius</code> 等参数就是在调这套机制，一般不用手动改。</p></div>
+</section>
+  <div class="navbot"><a href="stage1.html"><span class="lbl">← 上一阶段</span><span class="ttl">1 · 打基础</span></a><a class="r" href="stage3.html"><span class="lbl">下一阶段 →</span><span class="ttl">3 · 吃透核心骨架</span></a></div>
+  </article>
+</div>
+
+<script>
+(function(){
+  var nav=[].slice.call(document.querySelectorAll('aside a'));
+  var secs=nav.map(function(a){return document.querySelector(a.getAttribute('href'))});
+  function onScroll(){var k=0;for(var i=0;i<secs.length;i++){if(secs[i]&&secs[i].getBoundingClientRect().top<=120)k=i}nav.forEach(function(a,i){a.classList.toggle('active',i===k)})}
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function hi(c){
+    var re=/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(struct|class|template|typename|const|constexpr|double|float|int|bool|void|return|true|false|virtual|public|private|protected|new|delete|nullptr|NULL|static|for|if|else|while|using|namespace|explicit|auto|operator|cmake_minimum_required|project|find_package|add_executable|target_include_directories|target_link_libraries|set|make|mkdir|cd|sudo|apt|pip|conda|vcpkg|required|PRIVATE)\b|\b(AutoDiffCostFunction|NumericDiffCostFunction|DynamicAutoDiffCostFunction|CostFunction|SizedCostFunction|Problem|Solver|Summary|Options|Solve|AddResidualBlock|AddParameterBlock|CauchyLoss|HuberLoss|EigenQuaternionManifold|AngleAxisRotatePoint|SnavelyReprojectionError|ExponentialResidual|CostFunctor|Evaluate|exp|sqrt|sin|cos|std|cout|endl|ceres|Eigen)\b|\b(\d+\.?\d*(?:e[+-]?\d+)?)\b/g;
+    var o='',l=0,m;
+    while((m=re.exec(c))!==null){o+=esc(c.slice(l,m.index));var cl=m[1]?'cm':m[2]?'st':m[3]?'kw':m[4]?'fn':'nm';o+='<span class="'+cl+'">'+esc(m[0])+'</span>';l=m.index+m[0].length}
+    o+=esc(c.slice(l));return o;
+  }
+  document.querySelectorAll('.code pre code').forEach(function(e){if(e.textContent.indexOf('<span')<0)e.innerHTML=hi(e.textContent)});
+  document.querySelectorAll('.code .copy').forEach(function(b){b.addEventListener('click',function(){var c=b.parentNode.parentNode.querySelector('pre code').textContent;navigator.clipboard.writeText(c).then(function(){var o=b.textContent;b.textContent='已复制';setTimeout(function(){b.textContent=o},1400)})})});
+})();
+</script>
+
+<script>
+
+(function(){
+  var svg=document.getElementById('lmSvg'); if(!svg) return;
+  var L=56,R=648,T=20,Bot=268,XMIN=-0.5,XMAX=11,YMAX=52;
+  function px(x){return L+(x-XMIN)/(XMAX-XMIN)*(R-L);}
+  function py(y){return Bot-y/YMAX*(Bot-T);}
+  function f(x){return 0.5*(10-x)*(10-x);}
+  var grid='',gx='',gy='',i;
+  for(i=0;i<=10;i++)gx+='<line x1="'+px(i)+'" y1="'+T+'" x2="'+px(i)+'" y2="'+Bot+'" stroke="#eaeef2"/>';
+  for(i=0;i<=50;i+=10)gy+='<line x1="'+L+'" y1="'+py(i)+'" x2="'+R+'" y2="'+py(i)+'" stroke="#eaeef2"/><text x="'+(L-7)+'" y="'+(py(i)+4)+'" text-anchor="end" font-size="10" fill="#8b949e">'+i+'</text>';
+  document.getElementById('lmGrid').innerHTML=gx+gy;
+  var cp='';for(i=0;i<=110;i++){var x=XMIN+i/10*(XMAX-XMIN);cp+=(i?'L':'M')+px(x).toFixed(1)+' '+py(Math.min(YMAX,f(x))).toFixed(1);}
+  document.getElementById('lmCurve').setAttribute('d',cp);
+  document.getElementById('lmGoal').setAttribute('cx',px(10));document.getElementById('lmGoal').setAttribute('cy',py(0));
+  var gx0=0.5,dx0=0.5,mu=10,timer=null;
+  function draw(){
+    document.getElementById('lmGN').setAttribute('cx',px(gx0));document.getElementById('lmGN').setAttribute('cy',py(Math.min(YMAX,f(gx0))));
+    document.getElementById('lmGD').setAttribute('cx',px(dx0));document.getElementById('lmGD').setAttribute('cy',py(Math.min(YMAX,f(dx0))));
+    document.getElementById('lmGX').textContent=gx0.toFixed(3);document.getElementById('lmDX').textContent=dx0.toFixed(3);
+  }
+  function step(){
+    // 残差 r=10-x, J=-1 → JᵀJ=1, Jᵀr=-(10-x) → LM: Δ=(10-x)/(1+mu)
+    var stepGN=(10-gx0)/(1+mu); gx0+=stepGN;
+    var g=dx0-10; dx0-=0.12*g; // 朴素梯度下降 lr=0.12
+    var sl=document.getElementById('lmStepLine');
+    sl.innerHTML='<line x1="'+px(gx0-stepGN)+'" y1="'+py(Math.min(YMAX,f(gx0-stepGN)))+'" x2="'+px(gx0)+'" y2="'+py(Math.min(YMAX,f(gx0)))+'" stroke="#534ab7" stroke-width="1.5" stroke-dasharray="3 2"/>';
+    draw(); if(Math.abs(10-gx0)<0.01&&Math.abs(10-dx0)<0.01)pause();
+  }
+  function pause(){if(timer){clearInterval(timer);timer=null;document.getElementById('lmAuto').textContent='▶ 自动';}}
+  document.getElementById('lmStep').addEventListener('click',function(){pause();step();});
+  document.getElementById('lmAuto').addEventListener('click',function(){if(timer){pause();return;}document.getElementById('lmAuto').textContent='❚❚ 暂停';timer=setInterval(step,420);});
+  document.getElementById('lmReset').addEventListener('click',function(){pause();gx0=0.5;dx0=0.5;document.getElementById('lmStepLine').innerHTML='';draw();});
+  document.getElementById('lmMu').addEventListener('input',function(){mu=+this.value;document.getElementById('lmMuv').textContent='μ='+mu;});
+  draw();
+})();
+
+</script>
+</body>
+</html>
