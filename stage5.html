@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段 5 · Ceres 学习路线</title>
+<style>
+  :root{
+    --bg:#ffffff;--page:#f6f8fa;--surface:#ffffff;--text:#1f2328;--muted:#57606a;--hint:#8b949e;
+    --border:#d8dee4;--soft:#eaeef2;--blue:#185fa5;--deep:#0c447c;--bluebg:#e6f1fb;--blueln:#cfe3f7;
+    --teal:#0f6e56;--tealbg:#e1f5ee;--tealln:#bfe6d8;--amber:#854f0b;--amberbg:#faf0da;
+    --purple:#534ab7;--purplebg:#eeedfe;--coral:#993c1d;--coralbg:#faece7;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--page);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.75}
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .tbin{max-width:1080px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:600;color:var(--deep);font-size:14px;white-space:nowrap}
+  .logo .mark{width:26px;height:26px;border-radius:7px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px}
+  .progress{display:flex;align-items:center;gap:0;flex:1;justify-content:center;flex-wrap:wrap}
+  .pnode{display:flex;align-items:center;gap:0}
+  .pdot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-family:var(--mono);font-weight:600;background:var(--soft);color:var(--hint);border:1.5px solid transparent;flex:0 0 auto}
+  .pdot.done{background:var(--teal-bg);color:var(--teal)}
+  .pdot.cur{background:var(--blue);color:#fff;box-shadow:0 0 0 3px var(--blue-bg)}
+  .pbar{width:34px;height:2px;background:var(--border);margin:0 3px}
+  .pbar.done{background:var(--teal)}
+  .homebtn{font-size:13px;color:var(--muted);white-space:nowrap}
+  .stagehero{background:var(--surface);border-bottom:1px solid var(--border)}
+  .stagehero .hin{max-width:1080px;margin:0 auto;padding:40px 24px 34px}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.04em;padding:4px 12px;border-radius:99px;margin-bottom:14px}
+  .kicker .sn{font-family:var(--mono)}
+  .stagehero h1{font-size:34px;line-height:1.25;margin:0 0 10px;color:var(--deep);letter-spacing:-.02em}
+  .stagehero .lead{font-size:16.5px;color:var(--muted);margin:0;max-width:760px;line-height:1.7}
+  .goal{margin-top:22px;border-radius:12px;padding:16px 20px;border:1px solid var(--teal-line);background:var(--teal-bg)}
+  .goal b{display:block;color:#085041;font-size:13px;margin-bottom:6px}
+  .goal ul{margin:0;padding-left:20px;font-size:14px;color:#0b5846}
+  .goal li{margin:3px 0}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 0}
+  .grid{display:grid;grid-template-columns:210px 1fr;gap:36px}
+  aside{position:sticky;top:64px;align-self:start;height:calc(100vh - 80px);overflow:auto;padding:28px 0 40px}
+  aside .ttl{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--hint);padding:0 12px 8px}
+  aside a{display:block;font-size:13px;color:var(--muted);padding:7px 12px;border-left:2px solid transparent;border-radius:0 6px 6px 0}
+  aside a:hover{background:var(--blue-bg);color:var(--deep);text-decoration:none}
+  aside a.active{background:var(--blue-bg);color:var(--deep);border-left-color:var(--blue);font-weight:600}
+  article{min-width:0;padding:28px 0 40px}
+  section{scroll-margin-top:80px;margin-bottom:44px}
+  h2{font-size:23px;color:var(--deep);margin:0 0 14px;padding-bottom:9px;border-bottom:2px solid var(--blue-bg);letter-spacing:-.01em}
+  h2 .num{color:var(--blue);font-family:var(--mono);font-size:17px;margin-right:9px}
+  h3{font-size:17px;margin:24px 0 9px}
+  p{margin:10px 0}
+  ul,ol{margin:10px 0;padding-left:24px}
+  li{margin:5px 0}
+  strong{color:var(--deep)}
+  code.inline{font-family:var(--mono);font-size:.88em;background:var(--page);border:1px solid var(--soft);border-radius:5px;padding:1px 6px;color:var(--coral)}
+  .call{border-left:4px solid var(--blue);background:var(--blue-bg);border-radius:0 9px 9px 0;padding:13px 18px;margin:16px 0;font-size:14px}
+  .call b.lbl{display:block;margin-bottom:4px}
+  .call p{margin:4px 0}
+  .call.tip{border-color:var(--teal);background:var(--teal-bg)}
+  .call.warn{border-color:var(--amber);background:var(--amber-bg)}
+  .call.note{border-color:var(--purple);background:var(--purple-bg)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:13px;margin:16px 0}
+  .card{border:1px solid var(--border);border-radius:11px;padding:17px;background:var(--surface)}
+  .card h4{margin:0 0 7px;font-size:15px;color:var(--deep)}
+  .card p{margin:0;font-size:13.3px;color:var(--muted);line-height:1.6}
+  .card .tag{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--page);border:1px solid var(--soft);border-radius:4px;padding:1px 7px;margin-bottom:9px;color:var(--teal)}
+  .code{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:15px 0;background:var(--page)}
+  .code .h{background:#eef1f4;border-bottom:1px solid var(--border);padding:6px 14px;font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:space-between}
+  .code .copy{cursor:pointer;border:1px solid var(--border);background:var(--surface);border-radius:5px;padding:2px 10px;font-size:11.5px;color:var(--muted);font-family:var(--sans)}
+  .code .copy:hover{color:var(--blue);border-color:var(--blue)}
+  .code pre{margin:0;padding:15px 17px;overflow:auto;font-family:var(--mono);font-size:12.8px;line-height:1.65;color:var(--text)}
+  .kw{color:#a626a4}.fn{color:#075db0}.cm{color:#8b949e;font-style:italic}.st{color:#c9502b}.nm{color:#986801}
+  .out{background:#0d1117;color:#c9d1d9;border-radius:10px;padding:14px 17px;font-family:var(--mono);font-size:12.3px;line-height:1.6;overflow:auto;margin:14px 0}
+  .out .g{color:#7ee787}.out .d{color:#8b949e}
+  table{width:100%;border-collapse:collapse;margin:15px 0;font-size:13.8px}
+  th,td{border:1px solid var(--border);padding:8px 11px;text-align:left;vertical-align:top}
+  th{background:var(--page);color:var(--deep);font-weight:600}
+  td code{font-family:var(--mono);font-size:12.3px;color:var(--coral)}
+  .formula{background:var(--page);border:1px solid var(--soft);border-radius:10px;padding:14px 18px;margin:15px 0;font-family:var(--mono);font-size:13.8px;color:var(--deep);text-align:center;line-height:1.9;overflow:auto}
+  .steps{counter-reset:st;margin:16px 0}
+  .step{position:relative;padding-left:42px;margin:13px 0}
+  .step:before{counter-increment:st;content:counter(st);position:absolute;left:0;top:1px;width:28px;height:28px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;font-family:var(--mono)}
+  .step h4{margin:1px 0 4px;font-size:14.5px;color:var(--deep)}
+  .step p{margin:0;font-size:13.8px;color:var(--muted)}
+  details{border:1px solid var(--border);border-radius:9px;padding:11px 16px;margin:12px 0;background:var(--surface)}
+  summary{cursor:pointer;color:var(--deep);font-weight:600;font-size:14px}
+  .lsdemo{margin:16px 0;border:1px solid var(--border);border-radius:11px;padding:15px 17px;background:var(--surface)}
+  .lsdemo .legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:8px;font-size:12px;color:var(--muted)}
+  .lsdemo .legend span{display:flex;align-items:center;gap:5px}
+  .lsdemo svg{width:100%;height:auto;display:block}
+  .lsdemo .ctrl{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin:12px 0 6px}
+  .lsdemo .ctrl label{font-size:13px;display:flex;align-items:center;gap:8px}
+  .lsdemo .ctrl input[type=range]{width:150px}
+  .lsdemo .val{font-family:var(--mono);min-width:38px;color:var(--deep)}
+  .lsdemo .readout{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px}
+  .lsdemo .cost{background:var(--page);border-radius:8px;padding:8px 16px}
+  .lsdemo .cost .lab{font-size:12px;color:var(--muted)}
+  .lsdemo .cost .num{font-size:22px;font-weight:600;font-family:var(--mono);color:var(--deep)}
+  .lsdemo button{cursor:pointer;border:1px solid var(--border);background:var(--surface);border-radius:6px;padding:5px 12px;font-size:13px;color:var(--blue)}
+  .lsdemo button:hover{border-color:var(--blue)}
+  .lsdemo .hint{font-size:12px;color:var(--hint)}
+  .navbot{display:flex;gap:16px;justify-content:space-between;margin-top:46px;padding-top:22px;border-top:1px solid var(--border)}
+  .navbot a{flex:1;border:1px solid var(--border);border-radius:11px;padding:14px 18px;background:var(--surface)}
+  .navbot a:hover{border-color:var(--blue);text-decoration:none;transform:translateY(-1px)}
+  .navbot .lbl{font-size:12px;color:var(--hint)}
+  .navbot .ttl{font-size:15px;font-weight:600;color:var(--deep);display:block;margin-top:2px}
+  .navbot .r{text-align:right}
+  .navbot .sp{flex:0 0 120px}
+
+  /* ===== 原理深挖 ===== */
+  .deep-hd{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:#534ab7;background:#eeedfe;border:1px solid #cecbf6;border-radius:99px;padding:3px 11px;margin:0 0 8px}
+  .derive{border:1px solid var(--border);border-radius:11px;background:var(--surface);padding:15px 18px;margin:14px 0}
+  .derive h3{margin:0 0 9px;font-size:15.5px;color:var(--deep)}
+  .derive .eq{font-family:var(--mono);font-size:13.4px;line-height:2.05;color:var(--deep);background:var(--page);border:1px solid var(--soft);border-radius:8px;padding:10px 14px;margin:8px 0;overflow:auto;white-space:nowrap}
+  .derive .eq .em{color:var(--coral);font-weight:600}
+  .derive .eq .tl{color:var(--teal);font-weight:600}
+  .derive p{font-size:13.5px;color:var(--muted);margin:7px 0}
+  .derive p b{color:var(--deep)}
+  .animb{border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:15px 17px;margin:15px 0}
+  .animb .cap{font-size:12px;font-weight:600;color:var(--teal);letter-spacing:.03em;margin-bottom:9px}
+  .animb svg{width:100%;height:auto;display:block;background:var(--page);border:1px solid var(--soft);border-radius:9px}
+  .animb .ctl{display:flex;flex-wrap:wrap;gap:11px;align-items:center;margin-top:11px}
+  .animb button{cursor:pointer;border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:6px;padding:5px 13px;font-size:12.5px}
+  .animb button.gh{background:var(--surface);color:var(--blue)}
+  .animb button:hover{filter:brightness(.94)}
+  .animb label{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .animb input[type=range]{width:138px}
+  .animb .ro{font-family:var(--mono);font-size:12.4px;color:var(--deep);background:var(--page);border:1px solid var(--soft);border-radius:6px;padding:5px 10px;margin-top:10px;display:inline-block;line-height:1.8}
+  .animb .ro b{color:var(--coral)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:860px){.two{grid-template-columns:1fr}}
+
+  @media(max-width:860px){.grid{grid-template-columns:1fr}aside{display:none}.stagehero h1{font-size:27px}.progress{display:none}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="tbin">
+  <div class="logo"><span class="mark">C</span> Ceres 学习路线</div>
+  <div class="progress"><a class="pdot done" href="stage1.html" title="阶段1：打基础">1</a><div class="pbar done"></div><a class="pdot done" href="stage2.html" title="阶段2：跑通第一个例子">2</a><div class="pbar done"></div><a class="pdot done" href="stage3.html" title="阶段3：吃透核心骨架">3</a><div class="pbar done"></div><a class="pdot done" href="stage4.html" title="阶段4：动手练习">4</a><div class="pbar"></div><a class="pdot cur" href="stage5.html" title="阶段5：进阶实战">5</a></div>
+  <a class="homebtn" href="index.html">首页</a>
+</div></div>
+<div class="stagehero"><div class="hin">
+  <span class="kicker" style="color:#534ab7;background:#eeedfe;border:1px solid #cecbf6"><span class="sn">阶段 5 / 5</span></span>
+  <h1>进阶实战</h1>
+  <p class="lead">最后一步：认识 Ceres 的高端玩法——流形、稀疏求解器、Bundle Adjustment 和 Pose Graph SLAM。这些是视觉/机器人领域的核心应用。</p>
+  <div class="goal"><b>这一阶段结束后，你将能够</b><ul><li>理解流形约束为何必需</li><li>会按问题规模选线性求解器</li><li>看懂重投影误差的构成</li><li>了解 2D/3D 位姿图的建模思路</li></ul></div>
+</div></div>
+<div class="grid">
+  <aside><div class="ttl">本页目录</div><a href="#m1">流形</a><a href="#m2">线性求解器</a><a href="#m3">BA</a><a href="#m4">SLAM</a><a href="#m5">继续前进</a><a href="#deep">原理深挖</a></aside>
+  <article>
+<section id="m1"><h2><span class="num">01</span>流形 Manifold</h2>
+<p>角度、四元数这类参数自带约束：角度按 2π 循环、四元数必须单位长度。直接当普通变量更新会破坏约束，所以要声明流形：</p>
+<div class="code"><div class="h"><span>四元数参数块</span><button class="copy">复制</button></div><pre><code>problem.AddParameterBlock(q, 4,
+    new ceres::EigenQuaternionManifold());
+// 角度用 ceres::AngleManifold / Normalize 处理周期性</code></pre></div>
+<div class="call warn"><b class="lbl">何时必须用</b><p>只要参数有数学约束（周期性、单位长度、正交性），更新就必须限制在流形切空间内，否则四元数不再是单位四元数。</p></div>
+<div class="call note"><b class="lbl">坑</b><p>Eigen 四元数内存布局是 <code class="inline">[x,y,z,w]</code>，实部在最后；而构造函数接受 <code class="inline">(w,x,y,z)</code>。Ceres 操作裸指针，这个差异很关键。</p></div></section>
+
+<section id="m2"><h2><span class="num">02</span>线性求解器怎么选</h2>
+<table>
+  <tr><th>求解器</th><th>适用</th></tr>
+  <tr><td><code>DENSE_QR</code></td><td>小规模、参数少；默认试手</td></tr>
+  <tr><td><code>SPARSE_NORMAL_CHOLESKY</code></td><td>大规模稀疏问题通用选择</td></tr>
+  <tr><td><code>DENSE_SCHUR</code> / <code>SPARSE_SCHUR</code></td><td>Bundle Adjustment 专用，利用特殊稀疏结构</td></tr>
+</table>
+<div class="code"><div class="h"><span>配置</span><button class="copy">复制</button></div><pre><code>Solver::Options options;
+options.linear_solver_type = ceres::DENSE_SCHUR;
+options.minimizer_progress_to_stdout = true;</code></pre></div></section>
+
+<section id="m3"><h2><span class="num">03</span>Bundle Adjustment</h2>
+<p>给定特征点观测与对应关系，同时优化<strong>三维点坐标</strong>和<strong>相机参数</strong>，最小化重投影误差。每个残差依赖一个 3D 点和一个 9 参数相机（3 旋转 + 3 平移 + 1 焦距 + 2 径向畸变）。</p>
+<div class="code"><div class="h"><span>重投影误差核心</span><button class="copy">复制</button></div><pre><code>template &lt;typename T&gt;
+bool operator()(const T* const camera, const T* const point, T* r) const {
+  T p[3];
+  ceres::AngleAxisRotatePoint(camera, point, p);  // camera[0,1,2] 轴角旋转
+  p[0] += camera[3]; p[1] += camera[4]; p[2] += camera[5]; // 平移
+  T xp = -p[0]/p[2], yp = -p[1]/p[2];             // 投影
+  T r2 = xp*xp + yp*yp;
+  T d = 1.0 + r2*(camera[7] + camera[8]*r2);      // 径向畸变
+  r[0] = camera[6]*d*xp - T(observed_x);
+  r[1] = camera[6]*d*yp - T(observed_y);
+  return true;
+}
+// AutoDiffCostFunction&lt;SnavelyReprojectionError, 2, 9, 3&gt;</code></pre></div>
+<p>手推这个雅可比很痛苦，自动微分让它变得简洁——这正是 AutoDiff 在复杂模型里的价值。</p></section>
+
+<section id="m4"><h2><span class="num">04</span>Pose Graph SLAM</h2>
+<p>SLAM = 边建图边定位。位姿图把问题抽象成：节点是机器人位姿，边是两节点间的相对变换（来自里程计或扫描匹配）。</p>
+<div class="cards">
+  <div class="card"><span class="tag">2D</span><h4>位置 + 朝向角</h4><p>状态 <code class="inline">[pᵀ, ψ]ᵀ</code>，残差含平移差与归一化角度差，用 AngleManifold 处理角度周期性。</p></div>
+  <div class="card"><span class="tag">3D</span><h4>位置 + 四元数</h4><p>状态 <code class="inline">[pᵀ, qᵀ]ᵀ</code>，用 EigenQuaternionManifold 保证单位约束，结合 Eigen 几何模块。</p></div>
+</div>
+<p>残差通常还要乘测量协方差逆平方根 <code class="inline">Σ^(-1/2)</code>，表示对这条边有多信任。</p></section>
+
+<section id="m5"><h2><span class="num">05</span>继续前进</h2>
+<p>五步走完，你已具备独立用 Ceres 解决优化问题的能力。推荐下一步：</p>
+<ul>
+  <li>精读官方 <a href="https://ceres-solver.org/nnls_tutorial.html" target="_blank">NNLS Tutorial</a> 与 <a href="https://ceres-solver.readthedocs.io/" target="_blank">API 文档</a></li>
+  <li>研究源码 <code class="inline">examples/</code> 目录：bundle_adjuster.cc、circle_fit.cc、pose_graph_2d/3d</li>
+  <li>挑一个真实项目练手：用 Ceres 做相机标定、曲线拟合或缩微 SLAM</li>
+</ul>
+<div class="call tip"><b class="lbl">回顾</b><p>随时可以回首页 <a href="index.html">index.html</a> 重新进入任意阶段，或翻看 <a href="ceres_tutorial.html">系统教程</a> 查漏补缺。</p></div></section>
+
+
+<section id="deep"><h2><span class="num">06</span>原理深挖：Schur 补与流形背后的数学</h2>
+<span class="deep-hd">MATH + ANIMATION</span>
+<p>阶段 5 的两个"黑科技"——BA 为什么用 Schur 求解器能飞快、四元数为什么要声明流形——都有清晰的数学原理。这章各给你一个动画。</p>
+
+<div class="derive">
+  <h3>① Schur 补：先把三维点"消元"掉</h3>
+  <p>BA 要同时优化相机参数和三维点，正规方程 <b>H·Δx = −b</b> 巨大。但 H 有特殊的<b>分块稀疏结构</b>：相机之间、点与点之间几乎无直接关联，只有"某相机看到了某点"处才有非零块：</p>
+  <div class="eq">H = [ <span class="em">B</span> &nbsp; <span class="tl">E</span> ; &nbsp; <span class="tl">Eᵀ</span> &nbsp; <span class="em">C</span> ] &nbsp;&nbsp; B=相机块, C=点块(块对角,极易求逆), E=观测耦合</div>
+  <p>因为 C 是块对角的，<b>C⁻¹ 非常好算</b>。用 Schur 补把点消掉，问题从"相机+点"缩小到只解相机：</p>
+  <div class="eq">Schur 补 <span class="tl">S = B − E·C⁻¹·Eᵀ</span> &nbsp;→&nbsp; 先解 S·Δ相机 = −b′ &nbsp;→&nbsp; 再回代求 Δ点</div>
+  <p>点的数量通常远多于相机，消元后矩阵从几十万维骤降到几千维——这就是 <code class="inline">SCHUR</code> 求解器快的原因。</p>
+</div>
+<div class="animb" id="schurBox">
+  <div class="cap">动画演示 · Schur 补消元：矩阵从大变小</div>
+  <p style="font-size:13px;color:var(--muted);margin:0 0 10px">左边是完整的 H 矩阵热图（蓝=相机块 B，绿=点块 C，橙=耦合 E）。点"执行消元"，看绿色点块被消去、橙色耦合消失，只剩紫色的紧凑 Schur 补 S。</p>
+  <svg id="schurSvg" viewBox="0 0 680 250" role="img" aria-label="Schur 补消元动画">
+    <g id="schurM"></g>
+    <text x="250" y="244" text-anchor="middle" font-size="12" fill="#57606a">完整 H（相机 + 点）</text>
+    <path d="M 420 125 L 470 125" stroke="#8b949e" stroke-width="2" marker-end="url(#schurAh)"/>
+    <text x="558" y="244" text-anchor="middle" font-size="12" fill="#57606a">Schur 补 S（仅相机）</text>
+    <defs><marker id="schurAh" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#8b949e"/></marker></defs>
+  </svg>
+  <div class="ctl">
+    <button id="schurDo">执行消元 →</button>
+    <button id="schurReset" class="gh">重置</button>
+  </div>
+  <div class="ro" id="schurRo">当前：完整 H 矩阵 &nbsp;|&nbsp; 未知量 = 相机 + 三维点（很多）</div>
+</div>
+
+<div class="derive">
+  <h3>② 流形：为什么不能直接对四元数做加法</h3>
+  <p>单位四元数必须满足约束 <b>‖q‖ = 1</b>，它活在一个球面（三维球面 S³）上。而优化器默认的参数更新是<b>加法</b> <code class="inline">q ← q + Δ</code>——这一步通常会让 q 离开球面，约束被破坏。</p>
+  <div class="eq">普通更新：q + Δ &nbsp;→&nbsp; <span class="em">‖q+Δ‖ ≠ 1</span> &nbsp;(跑到球外，不再是合法旋转)
+流形更新：沿<b>切平面</b>走 Δ，再 <span class="tl">投影/归一化</span> 回球面 &nbsp;→&nbsp; ‖q‖=1 ✓</div>
+  <p>Ceres 的 <code class="inline">EigenQuaternionManifold()</code> 就是替你做"切空间移动 + 投影回流形"这件事，保证优化过程中参数始终是合法旋转。左图用二维单位圆类比球面，演示两种更新的区别。</p>
+</div>
+<div class="animb" id="mfBox">
+  <div class="cap">动画演示 · 普通更新 vs 流形更新（单位圆类比球面）</div>
+  <p style="font-size:13px;color:var(--muted);margin:0 0 10px">圆周代表约束 ‖q‖=1。同样沿切线走一步：橙色点直接加位移，跑出圆外（约束被破坏）；绿色点在流形上沿圆弧移动，始终留在圆上。拖动步长看偏离程度。</p>
+  <svg id="mfSvg" viewBox="0 0 680 300" role="img" aria-label="流形更新动画">
+    <g id="mfGrid"></g>
+    <circle id="mfCircle" cx="230" cy="150" r="100" fill="none" stroke="#0f6e56" stroke-width="2"/>
+    <line id="mfTangent" stroke="#ba7517" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <line id="mfBadLine" stroke="#ba7517" stroke-width="2.5"/>
+    <circle id="mfBad" r="7" fill="#ba7517" stroke="#fff" stroke-width="2"/>
+    <path id="mfGoodArc" fill="none" stroke="#185fa5" stroke-width="3"/>
+    <circle id="mfGood" r="7" fill="#185fa5" stroke="#fff" stroke-width="2"/>
+    <circle id="mfBase" r="5" fill="#534ab7" stroke="#fff" stroke-width="2"/>
+    <text x="230" y="272" text-anchor="middle" font-size="12" fill="#57606a">单位圆（约束 ‖q‖=1）</text>
+    <g id="mfLegend" font-size="12" fill="#57606a">
+      <circle cx="470" cy="96" r="6" fill="#ba7517"/><text x="486" y="101">普通 q+Δ：跑出圆外 ✗</text>
+      <circle cx="470" cy="130" r="6" fill="#185fa5"/><text x="486" y="135">流形更新：留在圆上 ✓</text>
+      <text x="470" y="170" font-family="monospace" fill="#993c1d">普通后 ‖q‖=<tspan id="mfNorm">—</tspan></text>
+      <text x="470" y="192" font-family="monospace" fill="#0f6e56">流形后 ‖q‖=1.000</text>
+    </g>
+  </svg>
+  <div class="ctl">
+    <label>更新步长 <input id="mfStep" type="range" min="5" max="95" value="55"><span id="mfStepv" class="ro" style="margin:0;padding:2px 7px">0.55</span></label>
+  </div>
+</div>
+<div class="call tip"><b class="lbl">一句话记住</b><p>BA 用 Schur 补是因为三维点数量巨大但彼此独立，可以先消元；流形是因为旋转/角度这类参数有几何约束，更新必须"贴着约束面走"。这两点正是 Ceres 区别于普通最小二乘库的高级能力。</p></div>
+</section>
+  <div class="navbot"><a href="stage4.html"><span class="lbl">← 上一阶段</span><span class="ttl">4 · 动手练习</span></a><div class="sp"></div></div>
+  </article>
+</div>
+
+<script>
+(function(){
+  var nav=[].slice.call(document.querySelectorAll('aside a'));
+  var secs=nav.map(function(a){return document.querySelector(a.getAttribute('href'))});
+  function onScroll(){var k=0;for(var i=0;i<secs.length;i++){if(secs[i]&&secs[i].getBoundingClientRect().top<=120)k=i}nav.forEach(function(a,i){a.classList.toggle('active',i===k)})}
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function hi(c){
+    var re=/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(struct|class|template|typename|const|constexpr|double|float|int|bool|void|return|true|false|virtual|public|private|protected|new|delete|nullptr|NULL|static|for|if|else|while|using|namespace|explicit|auto|operator|cmake_minimum_required|project|find_package|add_executable|target_include_directories|target_link_libraries|set|make|mkdir|cd|sudo|apt|pip|conda|vcpkg|required|PRIVATE)\b|\b(AutoDiffCostFunction|NumericDiffCostFunction|DynamicAutoDiffCostFunction|CostFunction|SizedCostFunction|Problem|Solver|Summary|Options|Solve|AddResidualBlock|AddParameterBlock|CauchyLoss|HuberLoss|EigenQuaternionManifold|AngleAxisRotatePoint|SnavelyReprojectionError|ExponentialResidual|CostFunctor|Evaluate|exp|sqrt|sin|cos|std|cout|endl|ceres|Eigen)\b|\b(\d+\.?\d*(?:e[+-]?\d+)?)\b/g;
+    var o='',l=0,m;
+    while((m=re.exec(c))!==null){o+=esc(c.slice(l,m.index));var cl=m[1]?'cm':m[2]?'st':m[3]?'kw':m[4]?'fn':'nm';o+='<span class="'+cl+'">'+esc(m[0])+'</span>';l=m.index+m[0].length}
+    o+=esc(c.slice(l));return o;
+  }
+  document.querySelectorAll('.code pre code').forEach(function(e){if(e.textContent.indexOf('<span')<0)e.innerHTML=hi(e.textContent)});
+  document.querySelectorAll('.code .copy').forEach(function(b){b.addEventListener('click',function(){var c=b.parentNode.parentNode.querySelector('pre code').textContent;navigator.clipboard.writeText(c).then(function(){var o=b.textContent;b.textContent='已复制';setTimeout(function(){b.textContent=o},1400)})})});
+})();
+</script>
+
+<script>
+
+(function(){
+  var svg=document.getElementById('schurSvg'); if(!svg) return;
+  var bx=40,by=40,cell=22,n=7;
+  function draw(fonts){
+    var g='';
+    for(var r=0;r<n;r++)for(var c=0;c<n;c++){
+      var x=bx+c*cell,y=by+r*cell,fill='#f6f8fa';
+      var inB=(r<3&&c<3), inC=(r>=3&&c>=3), inE=(r<3&&c>=3)||(r>=3&&c<3);
+      var block='';
+      if(fonts){ if(inB) block='S'; }
+      else { if(inB) fill='#cfe3f7'; else if(inC) fill='#bfe6d8'; else if(inE) fill='#f5d5b5'; }
+      if(fonts&&inB)fill='#cecbf6';
+      g+='<rect x="'+x+'" y="'+y+'" width="'+(cell-1)+'" height="'+(cell-1)+'" rx="2" fill="'+fill+'"/>';
+    }
+    document.getElementById('schurM').innerHTML=g;
+  }
+  draw(false);
+  document.getElementById('schurDo').addEventListener('click',function(){
+    // 淡出非 B 块，绘制紧凑 S
+    var rects=document.querySelectorAll('#schurM rect');
+    for(var i=0;i<rects.length;i++){
+      var idx=i, r=Math.floor(idx/n), c=idx%n;
+      if(!(r<3&&c<3)) rects[i].setAttribute('opacity','0.12');
+    }
+    var g='';for(var r=0;r<3;r++)for(var c=0;c<3;c++){
+      g+='<rect x="'+(490+c*cell)+'" y="'+(by+r*cell+15)+'" width="'+(cell-1)+'" height="'+(cell-1)+'" rx="2" fill="#cecbf6"/>';
+    }
+    document.getElementById('schurSvg').insertAdjacentHTML('beforeend','<g id="schurRight">'+g+'</g>');
+    document.getElementById('schurRo').innerHTML='当前：Schur 补 S = B − E·C⁻¹·Eᵀ &nbsp;|&nbsp; 未知量仅剩相机（大幅缩小）';
+    document.getElementById('schurDo').disabled=true;
+  });
+  document.getElementById('schurReset').addEventListener('click',function(){
+    draw(false);var rr=document.getElementById('schurRight');if(rr)rr.remove();
+    document.getElementById('schurRo').innerHTML='当前：完整 H 矩阵 &nbsp;|&nbsp; 未知量 = 相机 + 三维点（很多）';
+    document.getElementById('schurDo').disabled=false;
+  });
+})();
+(function(){
+  var svg=document.getElementById('mfSvg'); if(!svg) return;
+  var cx=230,cy=150,Rr=100,sS=document.getElementById('mfStep');
+  // 网格
+  var g='';for(var i=-1;i<=1;i+=0.5){g+='<line x1="'+(cx+i*Rr)+'" y1="30" x2="'+(cx+i*Rr)+'" y2="270" stroke="#eef1f4"/>';g+='<line x1="90" y1="'+(cy+i*Rr)+'" x2="370" y2="'+(cy+i*Rr)+'" stroke="#eef1f4"/>';}
+  document.getElementById('mfGrid').innerHTML=g;
+  function upd(){
+    var t=Math.PI/4; // 基点角度（右上 45°）
+    var bx=cx+Rr*Math.cos(t), by=cy-Rr*Math.sin(t);
+    // 切向（逆时针方向）
+    var tx=-Math.sin(t), ty=-Math.cos(t);
+    var s=+sS.value/100*Rr;
+    // 普通更新：沿切线直线走
+    var badx=bx+tx*s, bady=by+ty*s;
+    // 流形更新：沿圆弧走角 s/R
+    var t2=t+s/Rr, gx=cx+Rr*Math.cos(t2), gy=cy-Rr*Math.sin(t2);
+    document.getElementById('mfBase').setAttribute('cx',bx);document.getElementById('mfBase').setAttribute('cy',by);
+    document.getElementById('mfTangent').setAttribute('x1',bx);document.getElementById('mfTangent').setAttribute('y1',by);
+    document.getElementById('mfTangent').setAttribute('x2',bx+tx*Rr*0.9);document.getElementById('mfTangent').setAttribute('y2',by+ty*Rr*0.9);
+    document.getElementById('mfBadLine').setAttribute('x1',bx);document.getElementById('mfBadLine').setAttribute('y1',by);
+    document.getElementById('mfBadLine').setAttribute('x2',badx);document.getElementById('mfBadLine').setAttribute('y2',bady);
+    document.getElementById('mfBad').setAttribute('cx',badx);document.getElementById('mfBad').setAttribute('cy',bady);
+    document.getElementById('mfGood').setAttribute('cx',gx);document.getElementById('mfGood').setAttribute('cy',gy);
+    // 圆弧
+    var large=(s/Rr>Math.PI)?1:0;
+    document.getElementById('mfGoodArc').setAttribute('d','M '+bx+' '+by+' A '+Rr+' '+Rr+' 0 '+large+' 1 '+gx+' '+gy);
+    var nb=Math.sqrt((badx-cx)*(badx-cx)+(bady-cy)*(bady-cy))/Rr;
+    document.getElementById('mfNorm').textContent=nb.toFixed(3);
+    document.getElementById('mfStepv').textContent=(+sS.value/100).toFixed(2);
+  }
+  sS.addEventListener('input',upd);upd();
+})();
+
+</script>
+</body>
+</html>
