@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>阶段 3 · Ceres 学习路线</title>
+<style>
+  :root{
+    --bg:#ffffff;--page:#f6f8fa;--surface:#ffffff;--text:#1f2328;--muted:#57606a;--hint:#8b949e;
+    --border:#d8dee4;--soft:#eaeef2;--blue:#185fa5;--deep:#0c447c;--bluebg:#e6f1fb;--blueln:#cfe3f7;
+    --teal:#0f6e56;--tealbg:#e1f5ee;--tealln:#bfe6d8;--amber:#854f0b;--amberbg:#faf0da;
+    --purple:#534ab7;--purplebg:#eeedfe;--coral:#993c1d;--coralbg:#faece7;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--page);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.75}
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--soft)}
+  .tbin{max-width:1080px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:18px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:600;color:var(--deep);font-size:14px;white-space:nowrap}
+  .logo .mark{width:26px;height:26px;border-radius:7px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px}
+  .progress{display:flex;align-items:center;gap:0;flex:1;justify-content:center;flex-wrap:wrap}
+  .pnode{display:flex;align-items:center;gap:0}
+  .pdot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-family:var(--mono);font-weight:600;background:var(--soft);color:var(--hint);border:1.5px solid transparent;flex:0 0 auto}
+  .pdot.done{background:var(--teal-bg);color:var(--teal)}
+  .pdot.cur{background:var(--blue);color:#fff;box-shadow:0 0 0 3px var(--blue-bg)}
+  .pbar{width:34px;height:2px;background:var(--border);margin:0 3px}
+  .pbar.done{background:var(--teal)}
+  .homebtn{font-size:13px;color:var(--muted);white-space:nowrap}
+  .stagehero{background:var(--surface);border-bottom:1px solid var(--border)}
+  .stagehero .hin{max-width:1080px;margin:0 auto;padding:40px 24px 34px}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.04em;padding:4px 12px;border-radius:99px;margin-bottom:14px}
+  .kicker .sn{font-family:var(--mono)}
+  .stagehero h1{font-size:34px;line-height:1.25;margin:0 0 10px;color:var(--deep);letter-spacing:-.02em}
+  .stagehero .lead{font-size:16.5px;color:var(--muted);margin:0;max-width:760px;line-height:1.7}
+  .goal{margin-top:22px;border-radius:12px;padding:16px 20px;border:1px solid var(--teal-line);background:var(--teal-bg)}
+  .goal b{display:block;color:#085041;font-size:13px;margin-bottom:6px}
+  .goal ul{margin:0;padding-left:20px;font-size:14px;color:#0b5846}
+  .goal li{margin:3px 0}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 0}
+  .grid{display:grid;grid-template-columns:210px 1fr;gap:36px}
+  aside{position:sticky;top:64px;align-self:start;height:calc(100vh - 80px);overflow:auto;padding:28px 0 40px}
+  aside .ttl{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--hint);padding:0 12px 8px}
+  aside a{display:block;font-size:13px;color:var(--muted);padding:7px 12px;border-left:2px solid transparent;border-radius:0 6px 6px 0}
+  aside a:hover{background:var(--blue-bg);color:var(--deep);text-decoration:none}
+  aside a.active{background:var(--blue-bg);color:var(--deep);border-left-color:var(--blue);font-weight:600}
+  article{min-width:0;padding:28px 0 40px}
+  section{scroll-margin-top:80px;margin-bottom:44px}
+  h2{font-size:23px;color:var(--deep);margin:0 0 14px;padding-bottom:9px;border-bottom:2px solid var(--blue-bg);letter-spacing:-.01em}
+  h2 .num{color:var(--blue);font-family:var(--mono);font-size:17px;margin-right:9px}
+  h3{font-size:17px;margin:24px 0 9px}
+  p{margin:10px 0}
+  ul,ol{margin:10px 0;padding-left:24px}
+  li{margin:5px 0}
+  strong{color:var(--deep)}
+  code.inline{font-family:var(--mono);font-size:.88em;background:var(--page);border:1px solid var(--soft);border-radius:5px;padding:1px 6px;color:var(--coral)}
+  .call{border-left:4px solid var(--blue);background:var(--blue-bg);border-radius:0 9px 9px 0;padding:13px 18px;margin:16px 0;font-size:14px}
+  .call b.lbl{display:block;margin-bottom:4px}
+  .call p{margin:4px 0}
+  .call.tip{border-color:var(--teal);background:var(--teal-bg)}
+  .call.warn{border-color:var(--amber);background:var(--amber-bg)}
+  .call.note{border-color:var(--purple);background:var(--purple-bg)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:13px;margin:16px 0}
+  .card{border:1px solid var(--border);border-radius:11px;padding:17px;background:var(--surface)}
+  .card h4{margin:0 0 7px;font-size:15px;color:var(--deep)}
+  .card p{margin:0;font-size:13.3px;color:var(--muted);line-height:1.6}
+  .card .tag{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--page);border:1px solid var(--soft);border-radius:4px;padding:1px 7px;margin-bottom:9px;color:var(--teal)}
+  .code{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:15px 0;background:var(--page)}
+  .code .h{background:#eef1f4;border-bottom:1px solid var(--border);padding:6px 14px;font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:space-between}
+  .code .copy{cursor:pointer;border:1px solid var(--border);background:var(--surface);border-radius:5px;padding:2px 10px;font-size:11.5px;color:var(--muted);font-family:var(--sans)}
+  .code .copy:hover{color:var(--blue);border-color:var(--blue)}
+  .code pre{margin:0;padding:15px 17px;overflow:auto;font-family:var(--mono);font-size:12.8px;line-height:1.65;color:var(--text)}
+  .kw{color:#a626a4}.fn{color:#075db0}.cm{color:#8b949e;font-style:italic}.st{color:#c9502b}.nm{color:#986801}
+  .out{background:#0d1117;color:#c9d1d9;border-radius:10px;padding:14px 17px;font-family:var(--mono);font-size:12.3px;line-height:1.6;overflow:auto;margin:14px 0}
+  .out .g{color:#7ee787}.out .d{color:#8b949e}
+  table{width:100%;border-collapse:collapse;margin:15px 0;font-size:13.8px}
+  th,td{border:1px solid var(--border);padding:8px 11px;text-align:left;vertical-align:top}
+  th{background:var(--page);color:var(--deep);font-weight:600}
+  td code{font-family:var(--mono);font-size:12.3px;color:var(--coral)}
+  .formula{background:var(--page);border:1px solid var(--soft);border-radius:10px;padding:14px 18px;margin:15px 0;font-family:var(--mono);font-size:13.8px;color:var(--deep);text-align:center;line-height:1.9;overflow:auto}
+  .steps{counter-reset:st;margin:16px 0}
+  .step{position:relative;padding-left:42px;margin:13px 0}
+  .step:before{counter-increment:st;content:counter(st);position:absolute;left:0;top:1px;width:28px;height:28px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;font-family:var(--mono)}
+  .step h4{margin:1px 0 4px;font-size:14.5px;color:var(--deep)}
+  .step p{margin:0;font-size:13.8px;color:var(--muted)}
+  details{border:1px solid var(--border);border-radius:9px;padding:11px 16px;margin:12px 0;background:var(--surface)}
+  summary{cursor:pointer;color:var(--deep);font-weight:600;font-size:14px}
+  .lsdemo{margin:16px 0;border:1px solid var(--border);border-radius:11px;padding:15px 17px;background:var(--surface)}
+  .lsdemo .legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:8px;font-size:12px;color:var(--muted)}
+  .lsdemo .legend span{display:flex;align-items:center;gap:5px}
+  .lsdemo svg{width:100%;height:auto;display:block}
+  .lsdemo .ctrl{display:flex;flex-wrap:wrap;gap:18px;align-items:center;margin:12px 0 6px}
+  .lsdemo .ctrl label{font-size:13px;display:flex;align-items:center;gap:8px}
+  .lsdemo .ctrl input[type=range]{width:150px}
+  .lsdemo .val{font-family:var(--mono);min-width:38px;color:var(--deep)}
+  .lsdemo .readout{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px}
+  .lsdemo .cost{background:var(--page);border-radius:8px;padding:8px 16px}
+  .lsdemo .cost .lab{font-size:12px;color:var(--muted)}
+  .lsdemo .cost .num{font-size:22px;font-weight:600;font-family:var(--mono);color:var(--deep)}
+  .lsdemo button{cursor:pointer;border:1px solid var(--border);background:var(--surface);border-radius:6px;padding:5px 12px;font-size:13px;color:var(--blue)}
+  .lsdemo button:hover{border-color:var(--blue)}
+  .lsdemo .hint{font-size:12px;color:var(--hint)}
+  .navbot{display:flex;gap:16px;justify-content:space-between;margin-top:46px;padding-top:22px;border-top:1px solid var(--border)}
+  .navbot a{flex:1;border:1px solid var(--border);border-radius:11px;padding:14px 18px;background:var(--surface)}
+  .navbot a:hover{border-color:var(--blue);text-decoration:none;transform:translateY(-1px)}
+  .navbot .lbl{font-size:12px;color:var(--hint)}
+  .navbot .ttl{font-size:15px;font-weight:600;color:var(--deep);display:block;margin-top:2px}
+  .navbot .r{text-align:right}
+  .navbot .sp{flex:0 0 120px}
+
+  /* ===== 原理深挖 ===== */
+  .deep-hd{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:#534ab7;background:#eeedfe;border:1px solid #cecbf6;border-radius:99px;padding:3px 11px;margin:0 0 8px}
+  .derive{border:1px solid var(--border);border-radius:11px;background:var(--surface);padding:15px 18px;margin:14px 0}
+  .derive h3{margin:0 0 9px;font-size:15.5px;color:var(--deep)}
+  .derive .eq{font-family:var(--mono);font-size:13.4px;line-height:2.05;color:var(--deep);background:var(--page);border:1px solid var(--soft);border-radius:8px;padding:10px 14px;margin:8px 0;overflow:auto;white-space:nowrap}
+  .derive .eq .em{color:var(--coral);font-weight:600}
+  .derive .eq .tl{color:var(--teal);font-weight:600}
+  .derive p{font-size:13.5px;color:var(--muted);margin:7px 0}
+  .derive p b{color:var(--deep)}
+  .animb{border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:15px 17px;margin:15px 0}
+  .animb .cap{font-size:12px;font-weight:600;color:var(--teal);letter-spacing:.03em;margin-bottom:9px}
+  .animb svg{width:100%;height:auto;display:block;background:var(--page);border:1px solid var(--soft);border-radius:9px}
+  .animb .ctl{display:flex;flex-wrap:wrap;gap:11px;align-items:center;margin-top:11px}
+  .animb button{cursor:pointer;border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:6px;padding:5px 13px;font-size:12.5px}
+  .animb button.gh{background:var(--surface);color:var(--blue)}
+  .animb button:hover{filter:brightness(.94)}
+  .animb label{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .animb input[type=range]{width:138px}
+  .animb .ro{font-family:var(--mono);font-size:12.4px;color:var(--deep);background:var(--page);border:1px solid var(--soft);border-radius:6px;padding:5px 10px;margin-top:10px;display:inline-block;line-height:1.8}
+  .animb .ro b{color:var(--coral)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:860px){.two{grid-template-columns:1fr}}
+
+  @media(max-width:860px){.grid{grid-template-columns:1fr}aside{display:none}.stagehero h1{font-size:27px}.progress{display:none}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="tbin">
+  <div class="logo"><span class="mark">C</span> Ceres 学习路线</div>
+  <div class="progress"><a class="pdot done" href="stage1.html" title="阶段1：打基础">1</a><div class="pbar done"></div><a class="pdot done" href="stage2.html" title="阶段2：跑通第一个例子">2</a><div class="pbar"></div><a class="pdot cur" href="stage3.html" title="阶段3：吃透核心骨架">3</a><div class="pbar"></div><a class="pdot " href="stage4.html" title="阶段4：动手练习">4</a><div class="pbar"></div><a class="pdot " href="stage5.html" title="阶段5：进阶实战">5</a></div>
+  <a class="homebtn" href="index.html">首页</a>
+</div></div>
+<div class="stagehero"><div class="hin">
+  <span class="kicker" style="color:#185fa5;background:#e6f1fb;border:1px solid #cfe3f7"><span class="sn">阶段 3 / 5</span></span>
+  <h1>吃透核心骨架</h1>
+  <p class="lead">所有 Ceres 程序都是同一套四步骨架。把这一步吃透，曲线拟合、BA、SLAM 都只是换残差公式、多加几个残差块。</p>
+  <div class="goal"><b>这一阶段结束后，你将能够</b><ul><li>记住四步流程并能复述</li><li>理解 CostFunction / Problem / Solver 三大对象</li><li>搞懂自动微分的 double/Jet 双版本机制</li><li>知道三种求导方式如何取舍</li></ul></div>
+</div></div>
+<div class="grid">
+  <aside><div class="ttl">本页目录</div><a href="#m1">四步流程</a><a href="#m2">三大对象</a><a href="#m3">自动微分</a><a href="#m4">求导方式</a><a href="#m5">签名规则</a><a href="#deep">原理深挖</a></aside>
+  <article>
+<section id="m1"><h2><span class="num">01</span>四步流程</h2>
+<div class="formula">① 写代价函数 → ② 建 Problem 加残差块 → ③ 配 Solver::Options → ④ Solve()</div>
+<div class="steps">
+  <div class="step"><h4>定义代价函数</h4><p>一个带模板 <code class="inline">operator()</code> 的结构体，计算残差。</p></div>
+  <div class="step"><h4>构建问题</h4><p><code class="inline">Problem problem;</code> 然后 <code class="inline">AddResidualBlock</code> 把代价函数和参数绑一起。</p></div>
+  <div class="step"><h4>配置求解器</h4><p><code class="inline">Solver::Options options;</code> 设线性求解器、是否打印过程等。</p></div>
+  <div class="step"><h4>求解</h4><p><code class="inline">Solve(options, &amp;problem, &amp;summary);</code> 参数被原地更新。</p></div>
+</div>
+<div class="call note"><b class="lbl">记住这句话</b><p>复杂示例 = 换掉第①步的残差公式 + 在第②步多加几个残差块。骨架永远不变。</p></div></section>
+
+<section id="m2"><h2><span class="num">02</span>三大对象</h2>
+<div class="cards">
+  <div class="card"><span class="tag">CostFunction</span><h4>代价函数</h4><p>负责算残差向量和雅可比。最常用的是它的自动微分封装 <code class="inline">AutoDiffCostFunction</code>。</p></div>
+  <div class="card"><span class="tag">Problem</span><h4>问题容器</h4><p>装着所有残差块和参数块，是要解的整个优化问题，提供 <code class="inline">AddResidualBlock</code>。</p></div>
+  <div class="card"><span class="tag">Solver</span><h4>求解器</h4><p>按 Options 的配置执行优化，把结果和报告写进 Summary。</p></div>
+</div>
+<h3>术语对应</h3>
+<table>
+  <tr><th>术语</th><th>是什么</th><th>代码</th></tr>
+  <tr><td>ParameterBlock</td><td>一组一起优化的小标量，可单可多</td><td><code>&amp;x</code> / <code>&amp;camera, &amp;point</code></td></tr>
+  <tr><td>ResidualBlock</td><td>一个代价函数 + 它依赖的参数</td><td><code>AddResidualBlock(...)</code></td></tr>
+  <tr><td>LossFunction</td><td>给高残差降权，抗离群点</td><td><code>CauchyLoss(0.5)</code></td></tr>
+</table></section>
+
+<section id="m3"><h2><span class="num">03</span>自动微分：一份代码两种用途</h2>
+<p>你只写一遍残差公式，Ceres 用两种类型调用它：</p>
+<div class="formula">T = double → 算残差数值（评估误差）　　T = Jet → 残差 + 导数（指导搜索方向）</div>
+<div class="code"><div class="h"><span>同一个函数，两种实例化</span><button class="copy">复制</button></div><pre><code>struct CostFunctor {
+  template &lt;typename T&gt;
+  bool operator()(const T* const x, T* residual) const {
+    residual[0] = T(10.0) - x[0];   // T(10.0) 让运算全在 T 下进行
+    return true;
+  }
+};
+// AutoDiffCostFunction&lt;CostFunctor, 1, 1&gt; 完成封装</code></pre></div>
+<div class="call tip"><b class="lbl">为什么强推自动微分</b><p>精度高（链式法则精确）、省事（不用推导数）、效率高（模板编译期展开）。官方明确建议优先用它。</p></div></section>
+
+<section id="m4"><h2><span class="num">04</span>三种求导方式怎么选</h2>
+<table>
+  <tr><th>方式</th><th>适用</th><th>推荐度</th></tr>
+  <tr><td><code>AutoDiffCostFunction</code></td><td>残差能写成模板仿函数（绝大多数）</td><td>★★★★★ 首选</td></tr>
+  <tr><td><code>NumericDiffCostFunction</code></td><td>依赖无法改写的库函数，用有限差分</td><td>★★ 谨慎：贵且易有数值误差</td></tr>
+  <tr><td><code>CostFunction</code> 子类</td><td>要手推雅可比或闭式解更高效</td><td>★★★ 特殊场景</td></tr>
+</table>
+<p>高级场景还有 <code class="inline">DynamicAutoDiffCostFunction</code>（参数尺寸编译期未知）、<code class="inline">CostFunctionToFunctor</code> 等，入门阶段先不用管。</p></section>
+
+<section id="m5"><h2><span class="num">05</span>签名里的数字规则</h2>
+<p><code class="inline">AutoDiffCostFunction&lt;Functor, r, p1, p2, ...&gt;</code></p>
+<ul>
+  <li>第一个数字 <code class="inline">r</code>：残差维度（这个函数输出几个残差值）</li>
+  <li>后面每个 <code class="inline">p</code>：一个参数块的维度（顺序对应 <code class="inline">operator()</code> 里的参数指针顺序）</li>
+</ul>
+<div class="code"><div class="h"><span>例子对照</span><button class="copy">复制</button></div><pre><code>// 残差 1 维，参数 x 1 维
+AutoDiffCostFunction&lt;F1, 1, 1&gt;          → operator()(const T* x, T* r)
+
+// 残差 1 维，两个参数块各 1 维
+AutoDiffCostFunction&lt;F2, 1, 1, 1&gt;       → operator()(const T* a, const T* b, T* r)
+
+// 重投影误差：残差 2 维，相机 9 维 + 点 3 维
+AutoDiffCostFunction&lt;Reproj, 2, 9, 3&gt;   → operator()(const T* cam, const T* pt, T* r)</code></pre></div>
+<div class="call warn"><b class="lbl">易错点</b><p>数字个数、顺序必须和 <code class="inline">operator()</code> 的形参完全一致，否则编译期或运行期报错。</p></div></section>
+
+
+<section id="deep"><h2><span class="num">06</span>原理深挖：自动微分为什么能"免费"算导数</h2>
+<span class="deep-hd">MATH + ANIMATION</span>
+<p>你写了 <code class="inline">T(10.0) − x[0]</code>，Ceres 就同时拿到了残差值和导数，而你没有手写任何导数公式。这背后的魔法叫<b>对偶数（dual number）/ Jet</b>。这章拆给你看。</p>
+<div class="derive">
+  <h3>① 把"数"扩展成"数 + 导数"的数对</h3>
+  <p>定义一个新类型的数：<b>a + b·ε</b>，其中 a 是普通数值，b 是它的导数，ε 是一个满足 <b>ε² = 0</b> 的符号。你只关心 a 和 b，ε 只是"标记导数位置"的记账符号。</p>
+  <h3>② 四则运算规则（导数由运算自动带出）</h3>
+  <div class="eq">(a+bε) + (c+dε) = <span class="em">(a+c)</span> + <span class="tl">(b+d)</span>ε
+(a+bε) · (c+dε) = <span class="em">(ac)</span> + <span class="tl">(ad+bc)</span>ε &nbsp;(因为 ε²=0)</div>
+  <p>看乘法里的导数部分 <code class="inline">ad+bc</code>——正是乘积的求导法则！再看平方：</p>
+  <div class="eq">(x + 1·ε)² = x² + <span class="tl">2x</span>·ε &nbsp;→&nbsp; 值=x²，导数=2x</div>
+  <h3>③ 链式法则：复合函数逐层传播</h3>
+  <p>把函数拆成基本运算（+ − × ÷ sin exp …）的序列，每个运算都按上面的规则把导数往下传。输出数对的 b 部分，就是整个函数对输入 x 的导数。<b>这就是 Ceres 模板仿函数里 T 用 Jet 实例化时发生的事</b>——你写残差公式的每一步，导数都被同步算出来了。</p>
+</div>
+<div class="animb" id="adBox">
+  <div class="cap">动画演示 · Jet 数对沿计算链传播</div>
+  <p style="font-size:13px;color:var(--muted);margin:0 0 10px">以 f(x)=x²+sin(x) 在 x=1 为例。点"单步"，看数对 (值, 导数) 如何一层层流到输出。每个节点上半部分是值、下半部分是导数——导数从头到尾没用你手写一条公式。</p>
+  <svg id="adSvg" viewBox="0 0 680 250" role="img" aria-label="Jet 双数传播动画">
+    <g id="adNodes"></g>
+    <g id="adArrows"></g>
+  </svg>
+  <div class="ctl">
+    <button id="adStep">单步 →</button>
+    <button id="adAuto" class="gh">▶ 自动</button>
+    <button id="adReset" class="gh">重置</button>
+  </div>
+  <div class="ro" id="adRo">当前节点：<b>未开始</b>　—　点"单步"开始传播</div>
+</div>
+<div class="call tip"><b class="lbl">三种求导方式，为什么首推自动微分</b><p><b>自动微分</b>（本页）：精度达到机器精度，代码就是公式，维护最省事。<b>数值微分</b>：用 (f(x+h)−f(x))/h 近似，精度受 h 影响，慢。<b>解析微分</b>：手写雅可比，最快但极易写错、难维护。除非性能瓶颈，否则一律用自动微分。</p></div>
+</section>
+  <div class="navbot"><a href="stage2.html"><span class="lbl">← 上一阶段</span><span class="ttl">2 · 跑通第一个例子</span></a><a class="r" href="stage4.html"><span class="lbl">下一阶段 →</span><span class="ttl">4 · 动手练习</span></a></div>
+  </article>
+</div>
+
+<script>
+(function(){
+  var nav=[].slice.call(document.querySelectorAll('aside a'));
+  var secs=nav.map(function(a){return document.querySelector(a.getAttribute('href'))});
+  function onScroll(){var k=0;for(var i=0;i<secs.length;i++){if(secs[i]&&secs[i].getBoundingClientRect().top<=120)k=i}nav.forEach(function(a,i){a.classList.toggle('active',i===k)})}
+  window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function hi(c){
+    var re=/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(struct|class|template|typename|const|constexpr|double|float|int|bool|void|return|true|false|virtual|public|private|protected|new|delete|nullptr|NULL|static|for|if|else|while|using|namespace|explicit|auto|operator|cmake_minimum_required|project|find_package|add_executable|target_include_directories|target_link_libraries|set|make|mkdir|cd|sudo|apt|pip|conda|vcpkg|required|PRIVATE)\b|\b(AutoDiffCostFunction|NumericDiffCostFunction|DynamicAutoDiffCostFunction|CostFunction|SizedCostFunction|Problem|Solver|Summary|Options|Solve|AddResidualBlock|AddParameterBlock|CauchyLoss|HuberLoss|EigenQuaternionManifold|AngleAxisRotatePoint|SnavelyReprojectionError|ExponentialResidual|CostFunctor|Evaluate|exp|sqrt|sin|cos|std|cout|endl|ceres|Eigen)\b|\b(\d+\.?\d*(?:e[+-]?\d+)?)\b/g;
+    var o='',l=0,m;
+    while((m=re.exec(c))!==null){o+=esc(c.slice(l,m.index));var cl=m[1]?'cm':m[2]?'st':m[3]?'kw':m[4]?'fn':'nm';o+='<span class="'+cl+'">'+esc(m[0])+'</span>';l=m.index+m[0].length}
+    o+=esc(c.slice(l));return o;
+  }
+  document.querySelectorAll('.code pre code').forEach(function(e){if(e.textContent.indexOf('<span')<0)e.innerHTML=hi(e.textContent)});
+  document.querySelectorAll('.code .copy').forEach(function(b){b.addEventListener('click',function(){var c=b.parentNode.parentNode.querySelector('pre code').textContent;navigator.clipboard.writeText(c).then(function(){var o=b.textContent;b.textContent='已复制';setTimeout(function(){b.textContent=o},1400)})})});
+})();
+</script>
+
+<script>
+
+(function(){
+  var svg=document.getElementById('adSvg'); if(!svg) return;
+  var nodes=[
+    {t:'输入 x',v:'1.000',d:'1.000',sub:'x = 1',x:56},
+    {t:'x²',v:'1.000',d:'2.000',sub:'2x·dx',x:178},
+    {t:'sin(x)',v:'0.841',d:'0.540',sub:'cos x·dx',x:300},
+    {t:'相加',v:'1.841',d:'2.540',sub:'导数和',x:422},
+    {t:'输出 f(1)',v:'1.841',d:'2.540',sub:"f' = 2.540",x:544}
+  ];
+  var W=104,H=96,Y=44,ng='',ag='';
+  nodes.forEach(function(nd,i){
+    ng+='<g id="adn'+i+'">';
+    ng+='<rect x="'+nd.x+'" y="'+Y+'" width="'+W+'" height="'+H+'" rx="9" fill="#fff" stroke="#d8dee4" stroke-width="1.5"/>';
+    ng+='<text x="'+(nd.x+W/2)+'" y="'+(Y+18)+'" text-anchor="middle" font-size="11.5" font-weight="600" fill="#0c447c">'+nd.t+'</text>';
+    ng+='<line x1="'+nd.x+'" y1="'+(Y+28)+'" x2="'+(nd.x+W)+'" y2="'+(Y+28)+'" stroke="#eaeef2"/>';
+    ng+='<text x="'+(nd.x+W/2)+'" y="'+(Y+50)+'" text-anchor="middle" font-size="13" font-family="monospace" fill="#185fa5">'+nd.v+'</text>';
+    ng+='<text x="'+(nd.x+W/2)+'" y="'+(Y+70)+'" text-anchor="middle" font-size="12" font-family="monospace" fill="#993c1d">'+nd.d+'</text>';
+    ng+='<text x="'+(nd.x+W/2)+'" y="'+(Y+87)+'" text-anchor="middle" font-size="10" fill="#8b949e">'+nd.sub+'</text>';
+    ng+='</g>';
+    if(i<nodes.length-1) ag+='<path d="M '+(nd.x+W+2)+' '+(Y+H/2)+' L '+(nodes[i+1].x-4)+' '+(Y+H/2)+'" stroke="#cfe3f7" stroke-width="1.5" marker-end="url(#adah)"/>';
+  });
+  ag='<defs><marker id="adah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7aa7d6"/></marker></defs>'+ag;
+  document.getElementById('adNodes').innerHTML=ng;document.getElementById('adArrows').innerHTML=ag;
+  var cur=-1,timer=null;
+  function show(k){
+    for(var i=0;i<nodes.length;i++){
+      var g=document.getElementById('adn'+i), rect=g.querySelector('rect');
+      if(i<=k){rect.setAttribute('stroke', i===k?'#534ab7':'#bfe6d8');rect.setAttribute('fill', i===k?'#f3f1ff':'#fff');g.setAttribute('opacity','1');}
+      else{g.setAttribute('opacity','0.35');}
+    }
+    if(k>=0){var nd=nodes[k];document.getElementById('adRo').innerHTML='当前节点：<b>'+nd.t+'</b>　值=<b>'+nd.v+'</b> 导数=<b>'+nd.d+'</b>　('+nd.sub+')';}
+    else document.getElementById('adRo').innerHTML='当前节点：<b>未开始</b>　—　点"单步"开始传播';
+  }
+  function step(){if(cur<nodes.length-1)cur++;show(cur);if(cur===nodes.length-1)pause();}
+  function pause(){if(timer){clearInterval(timer);timer=null;document.getElementById('adAuto').textContent='▶ 自动';}}
+  document.getElementById('adStep').addEventListener('click',function(){pause();step();});
+  document.getElementById('adAuto').addEventListener('click',function(){if(timer){pause();return;}document.getElementById('adAuto').textContent='❚❚ 暂停';timer=setInterval(step,720);});
+  document.getElementById('adReset').addEventListener('click',function(){pause();cur=-1;show(-1);});
+  show(-1);
+})();
+
+</script>
+</body>
+</html>
